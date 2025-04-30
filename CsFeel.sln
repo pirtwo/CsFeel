@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsFeel", "CsFeel\CsFeel.csproj", "{5E16EA2E-3634-4A5A-ABD2-BA4C7BC6A40A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsFeel.Test", "CsFeel.Test\CsFeel.Test.csproj", "{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5E16EA2E-3634-4A5A-ABD2-BA4C7BC6A40A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E16EA2E-3634-4A5A-ABD2-BA4C7BC6A40A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E16EA2E-3634-4A5A-ABD2-BA4C7BC6A40A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E16EA2E-3634-4A5A-ABD2-BA4C7BC6A40A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
