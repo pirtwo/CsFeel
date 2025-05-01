@@ -8,5 +8,7 @@ public class ParserException(ParserExceptionType type, string? message)
 
 public enum ParserExceptionType
 {
-
+    SYNTAX_ERROR,
+    INVALID_TOKEN,
+    INVALID_TOKEN_VALUE,
 }
