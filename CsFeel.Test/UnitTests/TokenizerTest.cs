@@ -10,7 +10,7 @@ public class TokenizerTest
     [InlineData("-", Token.SUB)]
     [InlineData("*", Token.MUL)]
     [InlineData("/", Token.DIV)]
-    [InlineData("**", Token.EXP)]
+    [InlineData("**", Token.POW)]
     [InlineData("001", Token.NUM)]
     [InlineData("22.55", Token.NUM)]
     [InlineData(".98", Token.NUM)]

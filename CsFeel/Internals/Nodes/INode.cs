@@ -1,6 +1,6 @@
 namespace CsFeel.Internals.Nodes;
 
-public interface INode<T>
+public interface INode
 {
-    T Eval();
+    void Accept(INodeVisitor visitor);
 }

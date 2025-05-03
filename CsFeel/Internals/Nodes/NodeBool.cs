@@ -1,7 +1,7 @@
 namespace CsFeel.Internals.Nodes;
 
-public class NodeVariable(string name) : INode
+public class NodeBool(bool value) : INode
 {
-    public string Name { get; set; } = name;
+    public bool Value { get; set; } = value;
     public void Accept(INodeVisitor visitor) => visitor.Visit(this);
 }

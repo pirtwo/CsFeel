@@ -4,6 +4,8 @@ public enum Token
 {
     EOF,
     NUM,
+    STR,
+    BOOL,
     VAR,
     FUN,
     PAR_OPE,
@@ -12,7 +14,7 @@ public enum Token
     SUB,
     MUL,
     DIV,
-    EXP,
+    POW,
     CMP_EQ,
     CMP_NEQ,
     CMP_LT,

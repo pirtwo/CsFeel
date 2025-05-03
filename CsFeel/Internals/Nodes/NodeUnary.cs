@@ -1,8 +1,8 @@
 namespace CsFeel.Internals.Nodes;
 
-public class NodeUnary(INode<decimal> rhs, Func<decimal, decimal> op) : INode<decimal>
+public class NodeUnary(INode rhs, Token operation) : INode
 {
-    private readonly INode<decimal> _rhs = rhs;
-    private readonly Func<decimal, decimal> _op = op;
-    public decimal Eval() => _op(_rhs.Eval());
+    public readonly INode Rhs = rhs;
+    public readonly Token Operation = operation;
+    public void Accept(INodeVisitor visitor) => visitor.Visit(this);
 }

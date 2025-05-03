@@ -6,13 +6,24 @@ namespace CsFeel.Internals;
 
 public class Tokenizer
 {
-    public Token? CurrentToken => _token;
+    // TODO: remove this
     public object? CurrentTokenValue => _tokenValue;
 
     protected readonly TextReader _reader;
     protected char _crrChar;
     protected Token? _token = null;
     protected object? _tokenValue = null;
+
+    protected bool _bool = false;
+    protected decimal _number = 0;
+    protected string _string = string.Empty;
+    protected string _identifier = string.Empty;
+
+    public Token? CurrentToken => _token;
+    public bool GetBool => _bool;
+    public decimal GetNumber => _number;
+    public string GetString => _string;
+    public string GetIdentifier => _identifier;
 
     public Tokenizer(TextReader reader)
     {
@@ -75,7 +86,7 @@ public class Tokenizer
         }
         if (_crrChar == '*' && LookAhead() == '*')
         {
-            _token = Token.EXP;
+            _token = Token.POW;
             _tokenValue = null;
 
             NextChar();
@@ -102,7 +113,7 @@ public class Tokenizer
             return;
         }
 
-        // is variable ?
+        // is keyword or variable ?
         if (char.IsLetter(_crrChar) || _crrChar == '_')
         {
             StringBuilder sb = new();
@@ -111,6 +122,22 @@ public class Tokenizer
             {
                 sb.Append(_crrChar);
                 NextChar();
+            }
+
+            var word = sb.ToString();
+
+            // is keywords ?
+            if (word == "true")
+            {
+                _token = Token.BOOL;
+                _bool = true;
+                return;
+            }
+            if (word == "false")
+            {
+                _token = Token.BOOL;
+                _bool = false;
+                return;
             }
 
             _token = Token.VAR;
@@ -134,6 +161,29 @@ public class Tokenizer
 
             _token = Token.NUM;
             _tokenValue = decimal.Parse(sb.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture);
+
+            return;
+        }
+
+        // is string ?
+        if (_crrChar == '"')
+        {
+            // skip
+            NextChar();
+
+            StringBuilder sb = new();
+
+            while (_crrChar != '"')
+            {
+                sb.Append(_crrChar);
+                NextChar();
+            }
+
+            //skip
+            NextChar();
+
+            _string = sb.ToString();
+            _token = Token.STR;
 
             return;
         }

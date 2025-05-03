@@ -19,7 +19,7 @@ public class ParserTest
         Parser p = new(t);
 
         // act
-        var result = p.ParseExpression().Eval();
+        var result = p.ParseExpression();
 
         // assert
         Assert.Equal(expected, result);
@@ -39,7 +39,39 @@ public class ParserTest
         Parser p = new(t);
 
         // act
-        var result = p.ParseExpression().Eval();
+        var result = p.ParseExpression();
+
+        // assert
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("\"foo\"", "foo")]
+    [InlineData("\"foo\"+\"bar\"", "foobar")]
+    public void StringTest(string expression, string expected)
+    {
+        // arrange
+        Tokenizer t = new(new StringReader(expression));
+        Parser p = new(t);
+
+        // act
+        var result = p.ParseExpression();
+
+        // assert
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    public void BoolTest(string expression, bool expected)
+    {
+        // arrange
+        Tokenizer t = new(new StringReader(expression));
+        Parser p = new(t);
+
+        // act
+        var result = p.ParseExpression();
 
         // assert
         Assert.Equal(expected, result);

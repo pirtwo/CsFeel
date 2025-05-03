@@ -6,107 +6,96 @@ namespace CsFeel;
 
 public class Parser(Tokenizer tokenizer)
 {
+    protected readonly INodeVisitor _evaluator = new Evaluator();
     protected readonly IContext _context = new Context();
     protected readonly Tokenizer _tokenizer = tokenizer;
 
-    public INode<decimal> ParseExpression()
+    public object? ParseExpression()
     {
         var node = ParseAddSub();
 
-        return node;
+        node.Accept(_evaluator);
+
+        return _evaluator.GetResult();
     }
 
     /*--- parse add and sub ---*/
-    protected INode<decimal> ParseAddSub()
+    protected INode ParseAddSub()
     {
         var lhs = ParseMulDiv();
 
         while (true)
         {
-            Func<decimal, decimal, decimal>? op = null;
-            if (_tokenizer.CurrentToken == Token.ADD)
+            if (_tokenizer.CurrentToken == Token.ADD || _tokenizer.CurrentToken == Token.SUB)
             {
-                op = (a, b) => a + b;
-            }
-            if (_tokenizer.CurrentToken == Token.SUB)
-            {
-                op = (a, b) => a - b;
-            }
+                var op = _tokenizer.CurrentToken ?? throw new Exception("");
 
-            if (op == null)
+                // skip + or -
+                _tokenizer.NextToken();
+
+                var rhs = ParseMulDiv();
+
+                lhs = new NodeArithmetic(lhs, rhs, op);
+            }
+            else
             {
                 return lhs;
             }
-
-            // skip + or -
-            _tokenizer.NextToken();
-
-            var rhs = ParseMulDiv();
-
-            lhs = new NodeArithmetic(lhs, rhs, op);
         }
     }
 
     /*--- parse mul and div*/
-    protected INode<decimal> ParseMulDiv()
+    protected INode ParseMulDiv()
     {
         var lhs = ParseExp();
 
         while (true)
         {
-            Func<decimal, decimal, decimal>? op = null;
-            if (_tokenizer.CurrentToken == Token.MUL)
+            if (_tokenizer.CurrentToken == Token.MUL || _tokenizer.CurrentToken == Token.DIV)
             {
-                op = (a, b) => a * b;
-            }
-            if (_tokenizer.CurrentToken == Token.DIV)
-            {
-                op = (a, b) => a / b;
-            }
+                var op = _tokenizer.CurrentToken ?? throw new Exception("");
 
-            if (op == null)
+                // skip * or /
+                _tokenizer.NextToken();
+
+                var rhs = ParseExp();
+
+                lhs = new NodeArithmetic(lhs, rhs, op);
+            }
+            else
             {
                 return lhs;
             }
-
-            // skip * or /
-            _tokenizer.NextToken();
-
-            var rhs = ParseExp();
-
-            lhs = new NodeArithmetic(lhs, rhs, op);
         }
     }
 
     /*--- parse exponent ---*/
-    protected INode<decimal> ParseExp()
+    protected INode ParseExp()
     {
         var lhs = ParseUnary();
 
         while (true)
         {
-            Func<decimal, decimal, decimal>? op = null;
-            if (_tokenizer.CurrentToken == Token.EXP)
+            if (_tokenizer.CurrentToken == Token.POW)
             {
-                op = (a, b) => (decimal)Math.Pow((double)a, (double)b);
-            }
+                var op = _tokenizer.CurrentToken ?? throw new Exception("");
 
-            if (op == null)
+                // skip **
+                _tokenizer.NextToken();
+
+                var rhs = ParseUnary();
+
+                lhs = new NodeArithmetic(lhs, rhs, op);
+            }
+            else
             {
                 return lhs;
             }
-
-            // skip **
-            _tokenizer.NextToken();
-
-            var rhs = ParseUnary();
-
-            lhs = new NodeArithmetic(lhs, rhs, op);
         }
     }
 
     /*--- parse unary, exp: !x ---*/
-    protected INode<decimal> ParseUnary()
+    protected INode ParseUnary()
     {
         if (_tokenizer.CurrentToken == Token.ADD)
         {
@@ -118,19 +107,21 @@ public class Parser(Tokenizer tokenizer)
 
         if (_tokenizer.CurrentToken == Token.SUB)
         {
+            var op = _tokenizer.CurrentToken ?? throw new Exception("");
+
             // skip
             _tokenizer.NextToken();
 
             var rhs = ParseUnary();
 
-            return new NodeUnary(rhs, (x) => -x);
+            return new NodeUnary(rhs, op);
         }
 
         return ParseLeaf();
     }
 
     /*--- parse num, par, var ---*/
-    protected INode<decimal> ParseLeaf()
+    protected INode ParseLeaf()
     {
         // is number ?
         if (_tokenizer.CurrentToken == Token.NUM)
@@ -171,17 +162,37 @@ public class Parser(Tokenizer tokenizer)
         }
 
         // is variable ?
-        // if (_tokenizer.CurrentToken == Token.VAR)
-        // {
-        //     string varName = _tokenizer.CurrentTokenValue?.ToString()
-        //         ?? throw new ParserException(
-        //             ParserExceptionType.NULL_VARIABLE_NAME,
-        //             "can't resolve variable name");
+        if (_tokenizer.CurrentToken == Token.VAR)
+        {
+            NodeVariable n = new(_tokenizer.GetIdentifier);
 
-        //     NodeVariable n = new(_context, _tokenizer.CurrentTokenValue.ToString());
+            // skip identifier
+            _tokenizer.NextToken();
 
-        //     return n;
-        // }
+            return n;
+        }
+
+        // is string ?
+        if (_tokenizer.CurrentToken == Token.STR)
+        {
+            NodeString n = new(_tokenizer.GetString);
+
+            // skip string
+            _tokenizer.NextToken();
+
+            return n;
+        }
+
+        // is bool ?
+        if (_tokenizer.CurrentToken == Token.BOOL)
+        {
+            NodeBool n = new(_tokenizer.GetBool);
+
+            // skip bool
+            _tokenizer.NextToken();
+
+            return n;
+        }
 
         throw new ParserException(
             ParserExceptionType.INVALID_TOKEN,

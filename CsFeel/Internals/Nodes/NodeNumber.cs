@@ -1,7 +1,7 @@
 namespace CsFeel.Internals.Nodes;
 
-public class NodeNumber(decimal value) : INode<decimal>
+public class NodeNumber(decimal value) : INode
 {
-    private readonly decimal _value = value;
-    public decimal Eval() => _value;
+    public readonly decimal Value = value;
+    public void Accept(INodeVisitor visitor) => visitor.Visit(this);
 }

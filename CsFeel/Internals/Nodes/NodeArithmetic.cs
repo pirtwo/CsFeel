@@ -1,12 +1,9 @@
 namespace CsFeel.Internals.Nodes;
 
-public class NodeArithmetic(
-    INode<decimal> lhs,
-    INode<decimal> rhs,
-    Func<decimal, decimal, decimal> op) : INode<decimal>
+public class NodeArithmetic(INode lhs, INode rhs, Token operation) : INode
 {
-    private readonly INode<decimal> _lhs = lhs;
-    private readonly INode<decimal> _rhs = rhs;
-    private readonly Func<decimal, decimal, decimal> _op = op;
-    public decimal Eval() => _op(_lhs.Eval(), _rhs.Eval());
+    public readonly INode Lhs = lhs;
+    public readonly INode Rhs = rhs;
+    public readonly Token Operation = operation;
+    public void Accept(INodeVisitor visitor) => visitor.Visit(this);
 }
