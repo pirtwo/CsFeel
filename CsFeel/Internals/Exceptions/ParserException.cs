@@ -11,4 +11,5 @@ public enum ParserExceptionType
     SYNTAX_ERROR,
     INVALID_TOKEN,
     INVALID_TOKEN_VALUE,
+    NULL_VARIABLE_NAME,
 }

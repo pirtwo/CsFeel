@@ -4,20 +4,26 @@ using CsFeel.Internals.Exceptions;
 
 namespace CsFeel.Internals;
 
-public class Tokenizer(TextReader reader)
+public class Tokenizer
 {
-    protected readonly TextReader _reader = reader;
+    public Token? CurrentToken => _token;
+    public object? CurrentTokenValue => _tokenValue;
+
+    protected readonly TextReader _reader;
     protected char _crrChar;
     protected Token? _token = null;
     protected object? _tokenValue = null;
 
-    public Token? CurrentToken => _token;
-    public object? CurrentTokenValue => _tokenValue;
+    public Tokenizer(TextReader reader)
+    {
+        _reader = reader;
+
+        NextChar();
+        NextToken();
+    }
 
     public void NextToken()
     {
-        NextChar();
-
         // skip white spaces
         while (char.IsWhiteSpace(_crrChar))
         {
@@ -35,24 +41,36 @@ public class Tokenizer(TextReader reader)
         {
             _token = Token.ADD;
             _tokenValue = null;
+
+            NextChar();
+
             return;
         }
         if (_crrChar == '-')
         {
             _token = Token.SUB;
             _tokenValue = null;
+
+            NextChar();
+
             return;
         }
         if (_crrChar == '*' && LookAhead() != '*')
         {
             _token = Token.MUL;
             _tokenValue = null;
+
+            NextChar();
+
             return;
         }
         if (_crrChar == '/')
         {
             _token = Token.DIV;
             _tokenValue = null;
+
+            NextChar();
+
             return;
         }
         if (_crrChar == '*' && LookAhead() == '*')
@@ -60,8 +78,43 @@ public class Tokenizer(TextReader reader)
             _token = Token.EXP;
             _tokenValue = null;
 
-            // move to next char
             NextChar();
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == '(')
+        {
+            _token = Token.PAR_OPE;
+            _tokenValue = _crrChar.ToString();
+
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == ')')
+        {
+            _token = Token.PAR_CLO;
+            _tokenValue = _crrChar.ToString();
+
+            NextChar();
+
+            return;
+        }
+
+        // is variable ?
+        if (char.IsLetter(_crrChar) || _crrChar == '_')
+        {
+            StringBuilder sb = new();
+
+            while (char.IsLetter(_crrChar) || _crrChar == '_')
+            {
+                sb.Append(_crrChar);
+                NextChar();
+            }
+
+            _token = Token.VAR;
+            _tokenValue = sb.ToString();
 
             return;
         }
@@ -81,6 +134,7 @@ public class Tokenizer(TextReader reader)
 
             _token = Token.NUM;
             _tokenValue = decimal.Parse(sb.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture);
+
             return;
         }
 
@@ -99,4 +153,5 @@ public class Tokenizer(TextReader reader)
         int ch = _reader.Peek();
         return ch < 0 ? '\0' : (char)ch;
     }
+
 }
