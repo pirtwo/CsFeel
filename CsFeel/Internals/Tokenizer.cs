@@ -102,6 +102,22 @@ public class Tokenizer
 
             return;
         }
+        if (_crrChar == '[')
+        {
+            _token = Token.BRK_OPE;
+
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == ']')
+        {
+            _token = Token.BRK_CLO;
+
+            NextChar();
+
+            return;
+        }
         if (_crrChar == '=')
         {
             _token = Token.CMP_EQ;
@@ -148,6 +164,14 @@ public class Tokenizer
         if (_crrChar == '>')
         {
             _token = Token.CMP_GT;
+
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == ',')
+        {
+            _token = Token.COMMA;
 
             NextChar();
 

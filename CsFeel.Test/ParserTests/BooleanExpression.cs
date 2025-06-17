@@ -25,10 +25,13 @@ public class BooleanExpression
     [InlineData("null != null", false)]
     [InlineData("5 = 5", true)]
     [InlineData("4 != 4", false)]
+    [InlineData("2.5 != 2.5", false)]
+    [InlineData("-2.5 = 2.5", false)]
     [InlineData("3 > 2", true)]
     [InlineData("3 >= 3", true)]
     [InlineData("3 < 2", false)]
     [InlineData("3 <= 3", true)]
+    [InlineData("2.5 <= 2.3", false)]
     [InlineData("5 between 3 and 6", true)]
     public void ComparisonTest(string expression, bool expected)
     {

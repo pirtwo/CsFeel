@@ -19,4 +19,5 @@ public interface INodeVisitor
     void Visit(NodeNull node);
     void Visit(NodeBetween node);
     void Visit(NodeCompare node);
+    void Visit(NodeList node);
 }

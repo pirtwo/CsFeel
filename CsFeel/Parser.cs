@@ -100,12 +100,25 @@ public class Parser(Tokenizer tokenizer)
 
         var op = _tokenizer.CurrentToken ?? throw new Exception("");
 
-        // skip
-        _tokenizer.NextToken();
+        if (op == Token.CMP_GT
+            || op == Token.CMP_GTE
+            || op == Token.CMP_LT
+            || op == Token.CMP_LTE
+            || op == Token.CMP_EQ
+            || op == Token.CMP_NEQ
+            || op == Token.CMP_BTW)
+        {
+            // skip
+            _tokenizer.NextToken();
 
-        var rhs = ParseUnary();
+            var rhs = ParseUnary();
 
-        return new NodeCompare(lhs, rhs, op);
+            return new NodeCompare(lhs, rhs, op);
+        }
+        else
+        {
+            return lhs;
+        }
     }
 
     /*--- parse unary, exp: !x ---*/
@@ -165,6 +178,41 @@ public class Parser(Tokenizer tokenizer)
             _tokenizer.NextToken();
 
             return n;
+        }
+
+        // is bracket
+        if (_tokenizer.CurrentToken == Token.BRK_OPE)
+        {
+            // skip '['
+            _tokenizer.NextToken();
+
+            List<INode> list = [];
+            while (true)
+            {
+                var n = ParseAddSub();
+
+                list.Add(n);
+
+                if (_tokenizer.CurrentToken == Token.BRK_CLO)
+                {
+                    // skip ']'
+                    _tokenizer.NextToken();
+                    break;
+                }
+
+                if (_tokenizer.CurrentToken == Token.COMMA)
+                {
+                    // skip ','
+                    _tokenizer.NextToken();
+                    continue;
+                }
+                else
+                {
+                    throw new ParserException(ParserExceptionType.SYNTAX_ERROR, $"invalid char, expected: ',' or ']'");
+                }
+            }
+
+            return new NodeList(list);
         }
 
         // is string ?

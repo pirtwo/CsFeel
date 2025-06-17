@@ -288,4 +288,10 @@ public class Evaluator : INodeVisitor
                 break;
         }
     }
+
+    public void Visit(NodeList node)
+    {
+        _result = node.Value;
+        _resultType = DataType.LIST;
+    }
 }
