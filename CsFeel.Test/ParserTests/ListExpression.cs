@@ -31,4 +31,18 @@ public class ListExpression
             e => { Assert.Equal(2, e); },
             e => { Assert.Equal(3, e); });
     }
+
+    [Fact]
+    public void NestedListTest()
+    {
+        // arrange
+        Tokenizer t = new(new StringReader("[12,222,[12,9]]"));
+        Parser p = new(t);
+
+        // act
+        var result = p.ParseExpression()!;
+
+        // assert
+        Assert.IsType<List<INode>>(result);
+    }
 }
