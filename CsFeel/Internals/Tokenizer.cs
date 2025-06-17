@@ -6,24 +6,22 @@ namespace CsFeel.Internals;
 
 public class Tokenizer
 {
-    // TODO: remove this
-    public object? CurrentTokenValue => _tokenValue;
-
     protected readonly TextReader _reader;
     protected char _crrChar;
     protected Token? _token = null;
-    protected object? _tokenValue = null;
 
     protected bool _bool = false;
     protected decimal _number = 0;
     protected string _string = string.Empty;
     protected string _identifier = string.Empty;
+    protected Keyword? _keyword = null;
 
     public Token? CurrentToken => _token;
     public bool GetBool => _bool;
     public decimal GetNumber => _number;
     public string GetString => _string;
     public string GetIdentifier => _identifier;
+    public Keyword? GetKeyword => _keyword;
 
     public Tokenizer(TextReader reader)
     {
@@ -45,13 +43,11 @@ public class Tokenizer
         if (_crrChar == '\0')
         {
             _token = Token.EOF;
-            _tokenValue = null;
             return;
         }
         if (_crrChar == '+')
         {
             _token = Token.ADD;
-            _tokenValue = null;
 
             NextChar();
 
@@ -60,7 +56,6 @@ public class Tokenizer
         if (_crrChar == '-')
         {
             _token = Token.SUB;
-            _tokenValue = null;
 
             NextChar();
 
@@ -69,7 +64,6 @@ public class Tokenizer
         if (_crrChar == '*' && LookAhead() != '*')
         {
             _token = Token.MUL;
-            _tokenValue = null;
 
             NextChar();
 
@@ -78,7 +72,6 @@ public class Tokenizer
         if (_crrChar == '/')
         {
             _token = Token.DIV;
-            _tokenValue = null;
 
             NextChar();
 
@@ -87,7 +80,6 @@ public class Tokenizer
         if (_crrChar == '*' && LookAhead() == '*')
         {
             _token = Token.POW;
-            _tokenValue = null;
 
             NextChar();
             NextChar();
@@ -97,7 +89,6 @@ public class Tokenizer
         if (_crrChar == '(')
         {
             _token = Token.PAR_OPE;
-            _tokenValue = _crrChar.ToString();
 
             NextChar();
 
@@ -106,7 +97,57 @@ public class Tokenizer
         if (_crrChar == ')')
         {
             _token = Token.PAR_CLO;
-            _tokenValue = _crrChar.ToString();
+
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == '=')
+        {
+            _token = Token.CMP_EQ;
+
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == '!' && LookAhead() == '=')
+        {
+            _token = Token.CMP_NEQ;
+
+            NextChar();
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == '<' && LookAhead() == '=')
+        {
+            _token = Token.CMP_LTE;
+
+            NextChar();
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == '<')
+        {
+            _token = Token.CMP_LT;
+
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == '>' && LookAhead() == '=')
+        {
+            _token = Token.CMP_GTE;
+
+            NextChar();
+            NextChar();
+
+            return;
+        }
+        if (_crrChar == '>')
+        {
+            _token = Token.CMP_GT;
 
             NextChar();
 
@@ -127,21 +168,16 @@ public class Tokenizer
             var word = sb.ToString();
 
             // is keywords ?
-            if (word == "true")
+            if (word.KeywordTest() != null)
             {
-                _token = Token.BOOL;
-                _bool = true;
-                return;
+                _token = Token.KWD;
+                _keyword = word.KeywordTest();
             }
-            if (word == "false")
+            else
             {
-                _token = Token.BOOL;
-                _bool = false;
-                return;
+                _token = Token.VAR;
+                _identifier = sb.ToString();
             }
-
-            _token = Token.VAR;
-            _tokenValue = sb.ToString();
 
             return;
         }
@@ -160,7 +196,7 @@ public class Tokenizer
             }
 
             _token = Token.NUM;
-            _tokenValue = decimal.Parse(sb.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture);
+            _number = decimal.Parse(sb.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture);
 
             return;
         }

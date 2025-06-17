@@ -3,9 +3,9 @@ namespace CsFeel.Internals;
 public enum Token
 {
     EOF,
+    KWD,
     NUM,
     STR,
-    BOOL,
     VAR,
     FUN,
     PAR_OPE,

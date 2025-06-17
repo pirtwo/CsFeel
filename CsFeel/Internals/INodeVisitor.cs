@@ -16,4 +16,7 @@ public interface INodeVisitor
     void Visit(NodeString node);
     void Visit(NodeBool node);
     void Visit(NodeVariable node);
+    void Visit(NodeNull node);
+    void Visit(NodeBetween node);
+    void Visit(NodeCompare node);
 }

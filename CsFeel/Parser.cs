@@ -72,7 +72,7 @@ public class Parser(Tokenizer tokenizer)
     /*--- parse exponent ---*/
     protected INode ParseExp()
     {
-        var lhs = ParseUnary();
+        var lhs = ParseCompare();
 
         while (true)
         {
@@ -83,7 +83,7 @@ public class Parser(Tokenizer tokenizer)
                 // skip **
                 _tokenizer.NextToken();
 
-                var rhs = ParseUnary();
+                var rhs = ParseCompare();
 
                 lhs = new NodeArithmetic(lhs, rhs, op);
             }
@@ -92,6 +92,20 @@ public class Parser(Tokenizer tokenizer)
                 return lhs;
             }
         }
+    }
+
+    protected INode ParseCompare()
+    {
+        var lhs = ParseUnary();
+
+        var op = _tokenizer.CurrentToken ?? throw new Exception("");
+
+        // skip
+        _tokenizer.NextToken();
+
+        var rhs = ParseUnary();
+
+        return new NodeCompare(lhs, rhs, op);
     }
 
     /*--- parse unary, exp: !x ---*/
@@ -126,18 +140,11 @@ public class Parser(Tokenizer tokenizer)
         // is number ?
         if (_tokenizer.CurrentToken == Token.NUM)
         {
-            var value = (decimal?)_tokenizer.CurrentTokenValue;
-            if (value.HasValue)
-            {
-                _tokenizer.NextToken();
-                return new NodeNumber(value.Value);
-            }
-            else
-            {
-                throw new ParserException(
-                    ParserExceptionType.INVALID_TOKEN_VALUE,
-                    $"null value at token: {_tokenizer.CurrentToken}");
-            }
+            decimal value = _tokenizer.GetNumber;
+
+            _tokenizer.NextToken();
+
+            return new NodeNumber(value);
         }
 
         // is parenthesis ?
@@ -151,22 +158,10 @@ public class Parser(Tokenizer tokenizer)
             if (_tokenizer.CurrentToken != Token.PAR_CLO)
             {
                 throw new ParserException(
-                    ParserExceptionType.SYNTAX_ERROR,
-                    $"invalid char:{(string?)_tokenizer.CurrentTokenValue}, expected: ')'");
+                    ParserExceptionType.SYNTAX_ERROR, $"invalid char, expected: ')'");
             }
 
             // skip ')'
-            _tokenizer.NextToken();
-
-            return n;
-        }
-
-        // is variable ?
-        if (_tokenizer.CurrentToken == Token.VAR)
-        {
-            NodeVariable n = new(_tokenizer.GetIdentifier);
-
-            // skip identifier
             _tokenizer.NextToken();
 
             return n;
@@ -183,16 +178,48 @@ public class Parser(Tokenizer tokenizer)
             return n;
         }
 
-        // is bool ?
-        if (_tokenizer.CurrentToken == Token.BOOL)
+        // is variable ?
+        if (_tokenizer.CurrentToken == Token.VAR)
         {
-            NodeBool n = new(_tokenizer.GetBool);
+            NodeVariable n = new(_tokenizer.GetIdentifier);
 
-            // skip bool
+            // skip identifier
             _tokenizer.NextToken();
 
             return n;
         }
+
+        // is keyword ?
+        if (_tokenizer.CurrentToken == Token.KWD)
+        {
+            if (_tokenizer.GetKeyword == Keyword.NULL)
+            {
+                // skip identifier
+                _tokenizer.NextToken();
+
+                return new NodeNull();
+            }
+            if (_tokenizer.GetKeyword == Keyword.TRUE || _tokenizer.GetKeyword == Keyword.FALSE)
+            {
+                var n = new NodeBool(_tokenizer.GetKeyword == Keyword.TRUE);
+
+                // skip identifier
+                _tokenizer.NextToken();
+
+                return n;
+            }
+            if (_tokenizer.GetKeyword == Keyword.AND)
+            {
+                var n = new NodeBool(_tokenizer.GetKeyword == Keyword.TRUE);
+
+                // skip identifier
+                _tokenizer.NextToken();
+
+                return n;
+            }
+
+        }
+
 
         throw new ParserException(
             ParserExceptionType.INVALID_TOKEN,

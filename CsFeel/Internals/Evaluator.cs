@@ -150,4 +150,142 @@ public class Evaluator : INodeVisitor
         _result = node.Value;
         _resultType = DataType.BOOLEAN;
     }
+
+    public void Visit(NodeNull node)
+    {
+        _result = null;
+        _resultType = DataType.NULL;
+    }
+
+    public void Visit(NodeBetween node)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Visit(NodeCompare node)
+    {
+        var lhsEval = new Evaluator();
+        node.Lhs.Accept(lhsEval);
+
+        var rhsEval = new Evaluator();
+        node.Rhs.Accept(rhsEval);
+
+        if (lhsEval.GetResultType() != rhsEval.GetResultType())
+        {
+            _result = null;
+            _resultType = DataType.NULL;
+            return;
+        }
+
+        _resultType = DataType.BOOLEAN;
+        switch (node.Operation)
+        {
+            case Token.CMP_EQ:
+                switch (lhsEval.GetResultType())
+                {
+                    case DataType.NULL:
+                        _result = lhsEval.GetResult()! == rhsEval.GetResult()!;
+                        break;
+                    case DataType.BOOLEAN:
+                        _result = (bool)lhsEval.GetResult()! == (bool)rhsEval.GetResult()!;
+                        break;
+                    case DataType.NUMBER:
+                        _result = (decimal)lhsEval.GetResult()! == (decimal)rhsEval.GetResult()!;
+                        break;
+                    case DataType.STRING:
+                        _result = (string)lhsEval.GetResult()! == (string)rhsEval.GetResult()!;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case Token.CMP_NEQ:
+                switch (lhsEval.GetResultType())
+                {
+                    case DataType.NULL:
+                        _result = lhsEval.GetResult()! != rhsEval.GetResult()!;
+                        break;
+                    case DataType.BOOLEAN:
+                        _result = (bool)lhsEval.GetResult()! != (bool)rhsEval.GetResult()!;
+                        break;
+                    case DataType.NUMBER:
+                        _result = (decimal)lhsEval.GetResult()! != (decimal)rhsEval.GetResult()!;
+                        break;
+                    case DataType.STRING:
+                        _result = (string)lhsEval.GetResult()! != (string)rhsEval.GetResult()!;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case Token.CMP_LT:
+                switch (lhsEval.GetResultType())
+                {
+                    case DataType.NULL:
+                        _result = null;
+                        break;
+                    case DataType.NUMBER:
+                        _result = (decimal)lhsEval.GetResult()! < (decimal)rhsEval.GetResult()!;
+                        break;
+                    case DataType.STRING:
+                        _result = string.Compare((string)lhsEval.GetResult()!, (string)rhsEval.GetResult()!) < 0;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case Token.CMP_LTE:
+                switch (lhsEval.GetResultType())
+                {
+                    case DataType.NULL:
+                        _result = null;
+                        break;
+                    case DataType.NUMBER:
+                        _result = (decimal)lhsEval.GetResult()! <= (decimal)rhsEval.GetResult()!;
+                        break;
+                    case DataType.STRING:
+                        _result = (string)lhsEval.GetResult()! == (string)rhsEval.GetResult()!
+                            || string.Compare((string)lhsEval.GetResult()!, (string)rhsEval.GetResult()!) < 0;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case Token.CMP_GT:
+                switch (lhsEval.GetResultType())
+                {
+                    case DataType.NULL:
+                        _result = null;
+                        break;
+                    case DataType.NUMBER:
+                        _result = (decimal)lhsEval.GetResult()! > (decimal)rhsEval.GetResult()!;
+                        break;
+                    case DataType.STRING:
+                        _result = string.Compare((string)lhsEval.GetResult()!, (string)rhsEval.GetResult()!) > 0;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case Token.CMP_GTE:
+                switch (lhsEval.GetResultType())
+                {
+                    case DataType.NULL:
+                        _result = null;
+                        break;
+                    case DataType.NUMBER:
+                        _result = (decimal)lhsEval.GetResult()! >= (decimal)rhsEval.GetResult()!;
+                        break;
+                    case DataType.STRING:
+                        _result = (string)lhsEval.GetResult()! == (string)rhsEval.GetResult()!
+                            || string.Compare((string)lhsEval.GetResult()!, (string)rhsEval.GetResult()!) > 0;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            default:
+                break;
+        }
+    }
 }
