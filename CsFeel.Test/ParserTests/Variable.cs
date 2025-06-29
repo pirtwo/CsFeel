@@ -1,4 +1,4 @@
-using CsFeel.Internals;
+using CsFeel;
 
 namespace CsFeel.Test.ParserTests;
 

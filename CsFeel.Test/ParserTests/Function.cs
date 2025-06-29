@@ -1,8 +1,8 @@
-using CsFeel.Internals;
+// using CsFeel.Internals;
 
-namespace CsFeel.Test.ParserTests;
+// namespace CsFeel.Test.ParserTests;
 
-public class Function
-{
+// public class Function
+// {
 
-}
+// }
