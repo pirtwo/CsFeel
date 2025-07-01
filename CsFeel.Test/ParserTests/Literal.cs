@@ -7,7 +7,7 @@ public class Literal
 {
     [Theory]
     [InlineData("null")]
-    public void NullLiteralTest(string input)
+    public void NullTest(string input)
     {
         // arrange
         var exp = FeelParser.Expr.Parse(input);
@@ -24,7 +24,7 @@ public class Literal
     [InlineData("2.3", 2.3)]
     [InlineData(".3", .3)]
     [InlineData("-5", -5)]
-    public void NumberLiteralTest(string input, decimal expected)
+    public void NumberTest(string input, decimal expected)
     {
         // arrange
         var exp = FeelParser.Expr.Parse(input);
@@ -39,7 +39,7 @@ public class Literal
 
     [Theory]
     [InlineData("\"hello\"", "hello")]
-    public void StringLiteralTest(string input, string expected)
+    public void StringTest(string input, string expected)
     {
         // arrange
         var exp = FeelParser.Expr.Parse(input);
@@ -54,7 +54,7 @@ public class Literal
     [Theory]
     [InlineData("true", true)]
     [InlineData("false", false)]
-    public void BoolLiteralTest(string input, bool expected)
+    public void BoolTest(string input, bool expected)
     {
         // arrange
         var exp = FeelParser.Expr.Parse(input);
@@ -64,5 +64,65 @@ public class Literal
 
         // assert
         Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("date(\"2000-01-01\")", "2000-01-01")]
+    public void DateTest(string input, string expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
+
+        // assert
+        Assert.Equal(DateTime.Parse(expected), result);
+    }
+
+    [Fact]
+    public void DateThrowTest()
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse("date(11111)");
+
+        // act & assert
+        Assert.ThrowsAny<Exception>(() => FeelExpressionEval.Eval(exp, []));
+    }
+
+    [Fact]
+    public void ListTest()
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse("[1,\"hello\",null]");
+
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
+
+        // assert
+        Assert.IsType<List<object?>>(result);
+        Assert.Collection(
+            (List<object?>)result,
+            e => { Assert.Equivalent(1, e); },
+            e => { Assert.Equivalent("hello", e); },
+            e => { Assert.Equivalent(null, e); });
+    }
+
+    [Fact]
+    public void NestedListTest()
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse("[12,22,[12,9]]");
+
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
+
+        // assert
+        Assert.IsType<List<object?>>(result);
+        Assert.Collection(
+            (List<object?>)result,
+            e => { Assert.Equivalent(12, e); },
+            e => { Assert.Equivalent(22, e); },
+            e => { Assert.IsType<List<object?>>(e); });
     }
 }
