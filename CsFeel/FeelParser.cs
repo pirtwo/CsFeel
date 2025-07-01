@@ -5,7 +5,7 @@ namespace CsFeel;
 
 public static class FeelParser
 {
-    public static readonly Parser<FeelExpression> Null =
+    private static readonly Parser<FeelExpression> Null =
         from _ in Parse
             .String("null")
             .Token()
@@ -142,6 +142,16 @@ public static class FeelParser
             .Reverse()
             .Aggregate(operand, (acc, op) => new FeelUnary(op, acc));
 
+    public static readonly Parser<FeelExpression> Expo =
+        Parse.ChainOperator(
+            Parse
+                .String("**")
+                .Token()
+                .Text(),
+            Unary,
+            (op, left, right) => new FeelBinary(left, op, right)
+        );
+
     public static readonly Parser<FeelExpression> Multiplicative =
         Parse.ChainOperator(
             Parse
@@ -149,7 +159,7 @@ public static class FeelParser
                 .Or(Parse.Char('/'))
                 .Token()
                 .Select(c => c.ToString()),
-            Unary,
+            Expo,
             (op, left, right) => new FeelBinary(left, op, right)
         );
 
@@ -189,5 +199,24 @@ public static class FeelParser
             (op, left, right) => new FeelBinary(left, op, right)
         );
 
-    public static readonly Parser<FeelExpression> Expr = IfThenElse.Or(Some).Or(Logical);
+    public static readonly Parser<FeelExpression> InstanceOf =
+        from left in Logical
+        from _instOf in Parse.String("instance of").Token()
+        from typeName in Parse.Letter.AtLeastOnce().Token().Text()
+        select new FeelInstanceOf(left, typeName);
+
+    public static readonly Parser<FeelExpression> Between =
+        from left in Additive
+        from _btw in Parse.String("between").Token()
+        from lower in Additive
+        from _and in Parse.String("and").Token()
+        from upper in Additive
+        select new FeelBetween(left, lower, upper);
+
+    public static readonly Parser<FeelExpression> Expr =
+        IfThenElse
+        .Or(Some)
+        .Or(Between)
+        .Or(InstanceOf)
+        .Or(Logical);
 }

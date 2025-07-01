@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace CsFeel;
 
 public static class FeelExpressionEval
@@ -10,34 +8,47 @@ public static class FeelExpressionEval
         return expression switch
         {
             FeelLiteral x => x.Value,
+            FeelUnary x => EvalUnary(x.Op, x.Right, context),
+            FeelBinary x => EvalBinary(x.Left, x.Operator, x.Right, context),
+            FeelBetween x => EvalBetween(x.Left, x.LowerBoundExpr, x.UpperBoundExpr, context),
+            FeelInstanceOf x => EvalInstanceOf(x.Left, x.TypeName, context),
             FeelList x => x.Items.Select(expr => Eval(expr, context)).ToList(),
             FeelVariable x => context.TryGetValue(x.Name, out var value) ? value : null,
             FeelFunctionCall x => EvalFunctionCall(x.Name, [.. x.Args], context),
-            FeelUnary x => EvalUnary(x.Op, x.Right, context),
-            FeelBinary x => EvalBinary(x.Left, x.Operator, x.Right, context),
             _ => throw new Exception(""),
         };
     }
 
-    private static object? EvalBinary(
-        FeelExpression lhs, string op, FeelExpression rhs, Dictionary<string, object> context)
-    {
-        var lhsVal = Eval(lhs, context);
-        var rhsVal = Eval(rhs, context);
-
-        return (lhsVal, rhsVal) switch
+    private static bool EvalInstanceOf(
+        FeelExpression left,
+        string typeName,
+        Dictionary<string, object> context) => typeName switch
         {
-            var (l, r) when l is null && r is null => EvalBinaryOperatorNull(op),
-            var (l, r) when l is bool lv && r is null => EvalBinaryOperatorNull(lv, op),
-            var (l, r) when l is null && r is bool rv => EvalBinaryOperatorNull(rv, op),
-            var (l, r) when l is string lv && r is null => EvalBinaryOperatorNull(lv, op),
-            var (l, r) when l is null && r is string rv => EvalBinaryOperatorNull(rv, op),
-            var (l, r) when l is bool lv && r is bool rv => EvalBinaryOperator(lv, rv, op),
-            var (l, r) when l is bool lv && r is string rv => EvalBinaryOperator(lv, rv, op),
-            var (l, r) when l is string lv && r is bool rv => EvalBinaryOperator(lv, rv, op),
-            var (l, r) when l is string lv && r is string rv => EvalBinaryOperator(lv, rv, op),
-            var (l, r) when l is decimal lv && r is decimal rv => EvalBinaryOperator(lv, rv, op),
-            _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
+            "any" => Eval(left, context) is not null,
+            "time" => Eval(left, context) is TimeSpan,
+            "date" => Eval(left, context) is DateTime,
+            "list" => Eval(left, context) is List<object?>,
+            "number" => Eval(left, context) is decimal,
+            "string" => Eval(left, context) is string,
+            "boolean" => Eval(left, context) is bool,
+            _ => throw new FeelParserException(FeelParserError.INVALID_OPERAND)
+        };
+
+    private static bool EvalBetween(
+        FeelExpression left,
+        FeelExpression lowerBoundExpr,
+        FeelExpression upperBoundExpr,
+        Dictionary<string, object> context)
+    {
+        var leftVal = Eval(left, context);
+        var lowerBoundVal = Eval(lowerBoundExpr, context);
+        var upperBoundVal = Eval(upperBoundExpr, context);
+
+        return (leftVal, lowerBoundVal, upperBoundVal) switch
+        {
+            var (x, y, z) when x is decimal v && y is decimal lb && z is decimal ub => v >= lb && v <= ub,
+            var (x, y, z) when x is DateTime v && y is DateTime lb && z is DateTime ub => v >= lb && v <= ub,
+            _ => throw new FeelParserException(FeelParserError.INVALID_OPERAND)
         };
     }
 
@@ -79,11 +90,34 @@ public static class FeelExpressionEval
                 DateTime.TryParse(Eval(args[0], context) as string, out var dateTime)
                 ? dateTime
                 : throw new FeelParserException(FeelParserError.INVALID_ARGUMENT, dateTime.ToString()),
+            "string" =>
+                Eval(args[0], context)?.ToString(),
             _ =>
                 throw new FeelParserException(FeelParserError.INVALID_FUNCTION_NAME)
         };
     }
 
+    private static object? EvalBinary(
+        FeelExpression lhs, string op, FeelExpression rhs, Dictionary<string, object> context)
+    {
+        var lhsVal = Eval(lhs, context);
+        var rhsVal = Eval(rhs, context);
+
+        return (lhsVal, rhsVal) switch
+        {
+            var (l, r) when l is null && r is null => EvalBinaryOperatorNull(op),
+            var (l, r) when l is null && r is bool rv => EvalBinaryOperatorNull(rv, op),
+            var (l, r) when l is null && r is string rv => EvalBinaryOperatorNull(rv, op),
+            var (l, r) when l is bool lv && r is null => EvalBinaryOperatorNull(lv, op),
+            var (l, r) when l is bool lv && r is bool rv => EvalBinaryOperator(lv, rv, op),
+            var (l, r) when l is bool lv && r is string rv => EvalBinaryOperator(lv, rv, op),
+            var (l, r) when l is string lv && r is null => EvalBinaryOperatorNull(lv, op),
+            var (l, r) when l is string lv && r is bool rv => EvalBinaryOperator(lv, rv, op),
+            var (l, r) when l is string lv && r is string rv => EvalBinaryOperator(lv, rv, op),
+            var (l, r) when l is decimal lv && r is decimal rv => EvalBinaryOperator(lv, rv, op),
+            _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
+        };
+    }
     private static object? EvalBinaryOperator(decimal l, decimal r, string op) => op switch
     {
         "+" => l + r,
@@ -96,6 +130,7 @@ public static class FeelExpressionEval
         ">=" => l >= r,
         "<=" => l <= r,
         "!=" => l != r,
+        "**" => (decimal)Math.Pow((double)l, (double)r),
         "or" => null,
         "and" => null,
         _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)

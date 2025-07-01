@@ -7,6 +7,8 @@ public record FeelVariable(string Name) : FeelExpression;
 public record FeelUnary(string Op, FeelExpression Right) : FeelExpression;
 public record FeelBinary(FeelExpression Left, string Operator, FeelExpression Right) : FeelExpression;
 public record FeelIfElse(FeelExpression Condition, FeelExpression ThenExpr, FeelExpression ElseExpr) : FeelExpression;
+public record FeelBetween(FeelExpression Left, FeelExpression LowerBoundExpr, FeelExpression UpperBoundExpr) : FeelExpression;
+public record FeelInstanceOf(FeelExpression Left, string TypeName) : FeelExpression;
 public record FeelList(IEnumerable<FeelExpression> Items) : FeelExpression;
 public record FeelRange(FeelExpression Start, FeelExpression End) : FeelExpression;
 public record FeelSome(string Variable, FeelExpression InExpr, FeelExpression Predicate) : FeelExpression;

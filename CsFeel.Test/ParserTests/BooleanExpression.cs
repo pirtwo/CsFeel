@@ -125,15 +125,21 @@ public class BooleanExpression
     }
 
     [Theory]
-    [InlineData("1 instance of boolean", true)]
-    [InlineData("1 instance of number", false)]
+    [InlineData("1 instance of boolean", false)]
+    [InlineData("true instance of boolean", true)]
+    [InlineData("1.99 instance of number", true)]
+    [InlineData("null instance of number", false)]
+    [InlineData("\"hello\" instance of string", true)]
     [InlineData("1 instance of string", false)]
+    [InlineData("date(\"2000-01-01\") instance of date", true)]
     [InlineData("1 instance of date", false)]
+    [InlineData("time(\"14:20:32\") instance of time", true)]
     [InlineData("1 instance of time", false)]
-    [InlineData("1 instance of list", false)]
+    [InlineData("[1,2,3] instance of list", true)]
+    [InlineData("0 instance of list", false)]
     [InlineData("1 instance of context", false)]
     [InlineData("1 instance of function", true)]
-    [InlineData("1 instance of Any", false)]
+    [InlineData("1 instance of any", true)]
     public void InstanceOfTest(string input, bool expected)
     {
         // arrange
