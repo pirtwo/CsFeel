@@ -5,11 +5,11 @@ namespace CsFeel;
 
 public static class FeelParser
 {
-
     // Entry point (using Ref to allow recursion)
     public static readonly Parser<FeelExpression> Expr = Parse.Ref(() => _fullExpr);
 
-    // 1) expressio definnitions:
+    // ____________ 1. expressions ___________//
+
     // 1.1) literals: null, bool, number, string and identifiers
     static readonly Parser<FeelExpression> _null =
         from _nill in Parse.String("null").Token() select new FeelLiteral(null);
@@ -49,14 +49,6 @@ public static class FeelParser
         from _dots in Parse.String("..").Token()
         from end in _number.Token()
         select new FeelRange(start, end);
-    static readonly Parser<FeelExpression> _some =
-        from _some in Parse.String("some").Token()
-        from variable in _identifier.Select(v => ((FeelVariable)v).Name)
-        from _in in Parse.String("in").Token()
-        from collection in _list.Or(_range)
-        from _satisfies in Parse.String("satisfies").Token()
-        from condition in _fullExpr
-        select new FeelSome(variable, collection, condition);
 
     // 1.4) function call
     static readonly Parser<FeelExpression> _fnCall =
@@ -73,18 +65,11 @@ public static class FeelParser
         from _rp in Parse.Char(')').Token()
         select expr;
 
-    // 1.6) if then else
-    static readonly Parser<FeelExpression> _ifThenElse =
-        from _if in Parse.String("if").Token()
-        from condition in _fullExpr
-        from _then in Parse.String("then").Token()
-        from thenExpr in _fullExpr
-        from _else in Parse.String("else").Token()
-        from elseExpr in _fullExpr
-        select new FeelIfElse(condition, thenExpr, elseExpr);
 
-    // 2) primary parser: functions, parentheses, context, literals, identifiers
-    static readonly Parser<FeelExpression> _primaryParser =
+    // ____________ 2. parser pipeline ___________//
+
+    // 2.1) base parser: functions, parentheses, context, literals, identifiers
+    static readonly Parser<FeelExpression> _base =
         _fnCall
         .Or(_parn)
         .Or(_context)
@@ -96,17 +81,51 @@ public static class FeelParser
         .Or(_string)
         .Or(_identifier);
 
-    // 3) Chained property access: _primaryParser(.prop)*
+    // 2.2) Chained property access: _base(.prop)*
     static readonly Parser<FeelExpression> _accessChain =
         Parse.ChainOperator(
-            // operator parser: "." then identifier
             Parse.Char('.').Then(_ => Parse.Letter.AtLeastOnce().Text().Token()),
-            _primaryParser,
-            // aggregator: (propName, target, _) -> new PropertyAccess
+            _base,
             (propName, target, _) => new FeelContextPropertyAccess(target, propName)
         );
 
-    // 4) Unary operators on top of access chain
+    // 2.2) if then else
+    static readonly Parser<FeelExpression> _ifThenElse =
+        from _if in Parse.String("if").Token()
+        from condition in _fullExpr
+        from _then in Parse.String("then").Token()
+        from thenExpr in _fullExpr
+        from _else in Parse.String("else").Token()
+        from elseExpr in _fullExpr
+        select new FeelIfElse(condition, thenExpr, elseExpr);
+
+    // 2.3) some
+    static readonly Parser<FeelExpression> _some =
+        from _some in Parse.String("some").Token()
+        from variable in _identifier.Select(v => ((FeelVariable)v).Name)
+        from _in in Parse.String("in").Token()
+        from collection in _list.Or(_range)
+        from _satisfies in Parse.String("satisfies").Token()
+        from condition in _fullExpr
+        select new FeelSome(variable, collection, condition);
+
+    // 2.4) instance of, exp: x instance of y
+    static readonly Parser<FeelExpression> _instanceOf =
+        from left in _accessChain
+        from _instanceOf in Parse.String("instance of").Token()
+        from typeName in Parse.Letter.AtLeastOnce().Token().Text()
+        select new FeelInstanceOf(left, typeName);
+
+    // 2.5) between, exp: x between y and z
+    static readonly Parser<FeelExpression> _between =
+        from left in _accessChain
+        from _btw in Parse.String("between").Token()
+        from lower in _accessChain
+        from _and in Parse.String("and").Token()
+        from upper in _accessChain
+        select new FeelBetween(left, lower, upper);
+
+    // 2.6) Unary operators on top of access chain
     static readonly Parser<FeelExpression> _unary = (
         from ops in Parse.String("not").Token()
             .Or(Parse.Char('-').Select(_ => "-"))
@@ -114,7 +133,7 @@ public static class FeelParser
         from term in _accessChain
         select ops.Reverse().Aggregate(term, (expr, op) => new FeelUnary(op, expr))).Token();
 
-    // 5) Binary operators with proper precedence
+    // 2.7) Binary operators with proper precedence
     static readonly Parser<FeelExpression> _expo =
         Parse.ChainOperator(Parse.String("**").Token().Text(),
         _unary,
@@ -128,7 +147,11 @@ public static class FeelParser
         _mult,
         (op, left, right) => new FeelBinary(left, op, right));
     static readonly Parser<FeelExpression> _cmp =
-        Parse.ChainOperator(Parse
+        _instanceOf
+        .Or(_between)
+        .Or(_some)
+        .Or(
+            Parse.ChainOperator(Parse
                 .String(">=")
                 .Or(Parse.String("<="))
                 .Or(Parse.String(">"))
@@ -138,33 +161,13 @@ public static class FeelParser
                 .Text()
                 .Token(),
             _add,
-            (op, left, right) => new FeelBinary(left, op, right));
+            (op, left, right) => new FeelBinary(left, op, right))
+        );
     static readonly Parser<FeelExpression> _logical =
         Parse.ChainOperator(Parse.String("and").Or(Parse.String("or")).Text().Token(),
         _cmp,
         (op, left, right) => new FeelBinary(left, op, right));
 
-    // 1.7) instance of, exp: x instance of y
-    static readonly Parser<FeelExpression> _instanceOf =
-        from left in _accessChain
-        from _instanceOf in Parse.String("instance of").Token()
-        from typeName in Parse.Letter.AtLeastOnce().Token().Text()
-        select new FeelInstanceOf(left, typeName);
-
-    // 1.8) between, exp: x between y and z
-    static readonly Parser<FeelExpression> _between =
-        from left in _accessChain
-        from _btw in Parse.String("between").Token()
-        from lower in _accessChain
-        from _and in Parse.String("and").Token()
-        from upper in _accessChain
-        select new FeelBetween(left, lower, upper);
-
-    // top level combine all
-    static readonly Parser<FeelExpression> _fullExpr =
-        _ifThenElse
-        .Or(_some)
-        .Or(_between)
-        .Or(_instanceOf)
-        .Or(_logical);
+    //__________ top level (combine all) _________//
+    static readonly Parser<FeelExpression> _fullExpr = _ifThenElse.Or(_logical);
 }
