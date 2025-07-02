@@ -44,13 +44,13 @@ public static class FeelParser
         from items in _logical.DelimitedBy(Parse.Char(',').Token())
         from _rb in Parse.Char(']').Token()
         select new FeelList(items);
-    static readonly Parser<FeelExpression> _range =
-        from open in Parse.Char('[').Or(Parse.Char('(')).Token()
+    static readonly Parser<FeelExpression> _range = (
+        from open in Parse.Char('[').Or(Parse.Char('('))
         from low in _add
-        from _dots in Parse.String("..").Token()
+        from _dots in Parse.String("..")
         from high in _add
-        from close in Parse.Char(']').Or(Parse.Char(')')).Token()
-        select new FeelRange(low, high, open == '[', close == ']');
+        from close in Parse.Char(']').Or(Parse.Char(')'))
+        select new FeelRange(low, high, open == '[', close == ']')).Token();
 
     // 1.4) function call
     static readonly Parser<FeelExpression> _fnCall =
