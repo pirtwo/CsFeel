@@ -12,6 +12,7 @@ public record FeelInstanceOf(FeelExpression Left, string TypeName) : FeelExpress
 public record FeelContext(Dictionary<string, FeelExpression> Properties) : FeelExpression;
 public record FeelContextPropertyAccess(FeelExpression Target, string PropertyName) : FeelExpression;
 public record FeelList(IEnumerable<FeelExpression> Items) : FeelExpression;
-public record FeelRange(FeelExpression Start, FeelExpression End) : FeelExpression;
-public record FeelSome(string Variable, FeelExpression InExpr, FeelExpression Predicate) : FeelExpression;
+public record FeelRange(FeelExpression LowerBound, FeelExpression UpperBound, bool InclusiveLower, bool InclusiveUpper) : FeelExpression;
+public record FeelSome(string Variable, FeelExpression Collection, FeelExpression Predicate) : FeelExpression;
+public record FeelIn(FeelExpression ValueExpr, FeelExpression CollectionExpr) : FeelExpression;
 public record FeelFunctionCall(string Name, IEnumerable<FeelExpression> Args) : FeelExpression;

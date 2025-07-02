@@ -33,7 +33,7 @@ public static class FeelParser
         from entries in (
             from key in Parse.Letter.AtLeastOnce().Text().Token()
             from _colon in Parse.Char(':').Token()
-            from value in Expr
+            from value in _logical
             select new { key, value }).DelimitedBy(Parse.Char(',').Token())
         from _rb in Parse.Char('}').Token()
         select new FeelContext(entries.ToDictionary(e => e.key, e => e.value));
@@ -41,27 +41,29 @@ public static class FeelParser
     // 1.3) list, range and some
     static readonly Parser<FeelExpression> _list =
         from _lb in Parse.Char('[').Token()
-        from items in _fullExpr.DelimitedBy(Parse.Char(',').Token())
+        from items in _logical.DelimitedBy(Parse.Char(',').Token())
         from _rb in Parse.Char(']').Token()
         select new FeelList(items);
     static readonly Parser<FeelExpression> _range =
-        from start in _number.Token()
+        from open in Parse.Char('[').Or(Parse.Char('(')).Token()
+        from low in _add
         from _dots in Parse.String("..").Token()
-        from end in _number.Token()
-        select new FeelRange(start, end);
+        from high in _add
+        from close in Parse.Char(']').Or(Parse.Char(')')).Token()
+        select new FeelRange(low, high, open == '[', close == ']');
 
     // 1.4) function call
     static readonly Parser<FeelExpression> _fnCall =
         from name in Parse.Letter.AtLeastOnce().Text().Token()
         from _lp in Parse.Char('(').Token()
-        from args in _fullExpr.DelimitedBy(Parse.Char(',').Token()).Optional()
+        from args in _logical.DelimitedBy(Parse.Char(',').Token()).Optional()
         from _rp in Parse.Char(')').Token()
         select (FeelExpression)new FeelFunctionCall(name, args.GetOrElse([]));
 
     // 1.5) Parenthesized
     static readonly Parser<FeelExpression> _parn =
         from _lp in Parse.Char('(').Token()
-        from expr in _fullExpr
+        from expr in _logical
         from _rp in Parse.Char(')').Token()
         select expr;
 
@@ -73,8 +75,8 @@ public static class FeelParser
         _fnCall
         .Or(_parn)
         .Or(_context)
-        .Or(_list)
         .Or(_range)
+        .Or(_list)
         .Or(_null)
         .Or(_bool)
         .Or(_number)
@@ -92,11 +94,11 @@ public static class FeelParser
     // 2.2) if then else
     static readonly Parser<FeelExpression> _ifThenElse =
         from _if in Parse.String("if").Token()
-        from condition in _fullExpr
+        from condition in _logical
         from _then in Parse.String("then").Token()
-        from thenExpr in _fullExpr
+        from thenExpr in _logical
         from _else in Parse.String("else").Token()
-        from elseExpr in _fullExpr
+        from elseExpr in _logical
         select new FeelIfElse(condition, thenExpr, elseExpr);
 
     // 2.3) some
@@ -106,7 +108,7 @@ public static class FeelParser
         from _in in Parse.String("in").Token()
         from collection in _list.Or(_range)
         from _satisfies in Parse.String("satisfies").Token()
-        from condition in _fullExpr
+        from condition in _logical
         select new FeelSome(variable, collection, condition);
 
     // 2.4) instance of, exp: x instance of y
@@ -124,6 +126,13 @@ public static class FeelParser
         from _and in Parse.String("and").Token()
         from upper in _accessChain
         select new FeelBetween(left, lower, upper);
+
+    // 2.x) 
+    static readonly Parser<FeelExpression> _in =
+        from val in _accessChain
+        from _word in Parse.String("in").Token()
+        from coll in _accessChain
+        select new FeelIn(val, coll);
 
     // 2.6) Unary operators on top of access chain
     static readonly Parser<FeelExpression> _unary = (
@@ -150,6 +159,7 @@ public static class FeelParser
         _instanceOf
         .Or(_between)
         .Or(_some)
+        .Or(_in)
         .Or(
             Parse.ChainOperator(Parse
                 .String(">=")

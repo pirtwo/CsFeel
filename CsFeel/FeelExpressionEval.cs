@@ -2,43 +2,134 @@ namespace CsFeel;
 
 public static class FeelExpressionEval
 {
-    public static object? Eval(
-        FeelExpression expression, Dictionary<string, object> context)
+    public static object? Eval(FeelExpression expression, Dictionary<string, object> context) => expression switch
     {
-        return expression switch
+        FeelLiteral
+            x => x.Value,
+
+        FeelUnary
+            x => EvalUnary(x.Op, x.Right, context),
+
+        FeelBinary
+            x => EvalBinary(x.Left, x.Operator, x.Right, context),
+
+        FeelBetween
+            x => EvalBetween(x.Left, x.LowerBoundExpr, x.UpperBoundExpr, context),
+
+        FeelVariable
+            x => context.TryGetValue(x.Name, out var value) ? value : null,
+
+        FeelInstanceOf
+            x => EvalInstanceOf(x.Left, x.TypeName, context),
+
+        FeelFunctionCall
+            x => EvalFunctionCall(x.Name, [.. x.Args], context),
+
+        FeelList
+            x => x.Items.Select(expr => Eval(expr, context)).ToList(),
+
+        FeelRange
+            x => EvalRange(x.LowerBound, x.UpperBound, x.InclusiveLower, x.InclusiveUpper, context),
+
+        FeelSome
+            x => EvalSome(x.Variable, x.Collection, x.Predicate, context),
+
+        FeelIn
+            x => EvalIn(x.ValueExpr, x.CollectionExpr, context),
+
+        FeelContext
+            x => x.Properties.ToDictionary(p => p.Key, p => Eval(p.Value, context)),
+
+        FeelContextPropertyAccess
+            x => EvalContextPropertyAccess(x.Target, x.PropertyName, context),
+
+        _ => throw new Exception(""),
+    };
+
+    private static bool EvalIn(
+        FeelExpression valueExpr,
+        FeelExpression collectionExpr,
+        Dictionary<string, object> context)
+    {
+        var lhsValue = Eval(valueExpr, context);
+        var rhsValue = Eval(collectionExpr, context);
+
+        if (rhsValue is IEnumerable<object?> seq)
+            return seq.Any(item => Equals(item, lhsValue));
+
+        if (rhsValue is IDictionary<string, object?> dict && lhsValue is string key)
+            return dict.ContainsKey(key);
+
+        throw new FeelParserException(FeelParserError.INVALID_OPERATION);
+    }
+
+    private static bool EvalSome(
+        string variable,
+        FeelExpression collection,
+        FeelExpression predicate,
+        Dictionary<string, object> context)
+    {
+        var items = Eval(collection, context) as IEnumerable<object>
+            ?? throw new FeelParserException(FeelParserError.INVALID_OPERATION);
+        foreach (var item in items)
         {
-            FeelLiteral
-                x => x.Value,
+            var ctx2 = new Dictionary<string, object>(context)
+            {
+                [variable] = item
+            };
 
-            FeelUnary
-                x => EvalUnary(x.Op, x.Right, context),
+            var val = Eval(predicate, ctx2);
+            if (val is bool bv)
+            {
+                if (bv)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                throw new FeelParserException(FeelParserError.INVALID_OPERATION);
+            }
+        }
 
-            FeelBinary
-                x => EvalBinary(x.Left, x.Operator, x.Right, context),
+        return false;
+    }
 
-            FeelBetween
-                x => EvalBetween(x.Left, x.LowerBoundExpr, x.UpperBoundExpr, context),
+    private static List<object?> EvalRange(
+        FeelExpression lowerBound,
+        FeelExpression upperBound,
+        bool inclusiveLower,
+        bool inclusiveUpper,
+        Dictionary<string, object> context)
+    {
+        var lowerBoundValue = Eval(lowerBound, context);
+        var upperBoundValue = Eval(upperBound, context);
 
-            FeelVariable
-                x => context.TryGetValue(x.Name, out var value) ? value : null,
+        if (lowerBoundValue is decimal lvDecimal && upperBoundValue is decimal uvDecimal)
+        {
+            var stepLow = inclusiveLower ? lvDecimal : lvDecimal + 1;
+            var stepHigh = inclusiveUpper ? uvDecimal : uvDecimal - 1;
+            var list = new List<object?>();
+            for (var v = stepLow; v <= stepHigh; v += 1m)
+            {
+                list.Add(v);
+            }
+            return list;
+        }
 
-            FeelInstanceOf
-                x => EvalInstanceOf(x.Left, x.TypeName, context),
+        if (lowerBoundValue is DateTime lvDate && upperBoundValue is DateTime uvDate)
+        {
+            var current = inclusiveLower ? lvDate : lvDate.AddDays(1);
+            var end = inclusiveUpper ? uvDate : uvDate.AddDays(-1);
+            var list = new List<object?>();
+            for (var d = current; d <= end; d = d.AddDays(1))
+            {
+                list.Add(d);
+            }
+            return list;
+        }
 
-            FeelFunctionCall
-                x => EvalFunctionCall(x.Name, [.. x.Args], context),
-
-            FeelList
-                x => x.Items.Select(expr => Eval(expr, context)).ToList(),
-
-            FeelContext
-                x => x.Properties.ToDictionary(p => p.Key, p => Eval(p.Value, context)),
-
-            FeelContextPropertyAccess
-                x => EvalContextPropertyAccess(x.Target, x.PropertyName, context),
-
-            _ => throw new Exception(""),
-        };
+        throw new FeelParserException(FeelParserError.UNSUPPORTED_RANGE_TYPE);
     }
 
     private static object? EvalContextPropertyAccess(
@@ -93,7 +184,9 @@ public static class FeelExpressionEval
     }
 
     private static object? EvalUnary(
-        string op, FeelExpression lhs, Dictionary<string, object> context)
+        string op,
+        FeelExpression lhs,
+        Dictionary<string, object> context)
     {
         var rhsVal = Eval(lhs, context);
         if (rhsVal is not decimal)
@@ -110,7 +203,9 @@ public static class FeelExpressionEval
     }
 
     private static object? EvalFunctionCall(
-        string funcName, List<FeelExpression> args, Dictionary<string, object> context)
+        string funcName,
+        List<FeelExpression> args,
+        Dictionary<string, object> context)
     {
         return funcName switch
         {

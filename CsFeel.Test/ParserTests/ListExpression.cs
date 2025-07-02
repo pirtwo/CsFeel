@@ -1,48 +1,38 @@
-// using CsFeel.Internals;
-// using CsFeel.Internals.Nodes;
+using Sprache;
 
-// namespace CsFeel.Test.ParserTests;
+namespace CsFeel.Test.ParserTests;
 
-// public class ListExpression
-// {
-//     [Fact]
-//     public void LiteralTest()
-//     {
-//         // arrange
-//         Tokenizer t = new(new StringReader("[1,2,3]"));
-//         Parser p = new(t);
+public class ListExpression
+{
+    [Theory]
+    [InlineData("some x in [1,2,3,4] satisfies x > 2", true)]
+    [InlineData("some x in [1,2,3,4] satisfies x > 11", false)]
+    [InlineData("some x in [1,-2,3,4] satisfies x < 0", true)]
+    [InlineData("some x in [1,-2,3,4] satisfies x = 5", false)]
+    public void SomeTest(string input, bool expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
 
-//         // act
-//         var result = (List<INode>)p.ParseExpression()!;
-//         var list = result.Select(x =>
-//         {
-//             var e = new Evaluator();
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
 
-//             x.Accept(e);
+        // assert
+        Assert.Equal(expected, (bool)result!);
+    }
 
-//             return (decimal)e.GetResult()!;
-//         }).ToList();
+    [Theory]
+    [InlineData("5 in [1..10]", true)]
+    public void RangeTest(string input, bool expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
 
-//         // assert
-//         Assert.IsType<List<decimal>>(list);
-//         Assert.Collection(
-//             list,
-//             e => { Assert.Equal(1, e); },
-//             e => { Assert.Equal(2, e); },
-//             e => { Assert.Equal(3, e); });
-//     }
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
 
-//     [Fact]
-//     public void NestedListTest()
-//     {
-//         // arrange
-//         Tokenizer t = new(new StringReader("[12,222,[12,9]]"));
-//         Parser p = new(t);
+        // assert
+        Assert.Equal(expected, (bool)result!);
+    }
 
-//         // act
-//         var result = p.ParseExpression()!;
-
-//         // assert
-//         Assert.IsType<List<INode>>(result);
-//     }
-// }
+}
