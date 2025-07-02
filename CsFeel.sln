@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsFeel", "CsFeel\CsFeel.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsFeel.Test", "CsFeel.Test\CsFeel.Test.csproj", "{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsFeel.Console", "CsFeel.Console\CsFeel.Console.csproj", "{30375D28-7752-4C8C-A4C5-0371C848A138}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8ACEF28B-2DAD-4A8C-8CAA-7F73D90A865F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30375D28-7752-4C8C-A4C5-0371C848A138}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30375D28-7752-4C8C-A4C5-0371C848A138}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30375D28-7752-4C8C-A4C5-0371C848A138}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30375D28-7752-4C8C-A4C5-0371C848A138}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
