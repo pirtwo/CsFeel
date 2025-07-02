@@ -9,6 +9,8 @@ public record FeelBinary(FeelExpression Left, string Operator, FeelExpression Ri
 public record FeelIfElse(FeelExpression Condition, FeelExpression ThenExpr, FeelExpression ElseExpr) : FeelExpression;
 public record FeelBetween(FeelExpression Left, FeelExpression LowerBoundExpr, FeelExpression UpperBoundExpr) : FeelExpression;
 public record FeelInstanceOf(FeelExpression Left, string TypeName) : FeelExpression;
+public record FeelContext(Dictionary<string, FeelExpression> Properties) : FeelExpression;
+public record FeelContextPropertyAccess(FeelExpression Target, string PropertyName) : FeelExpression;
 public record FeelList(IEnumerable<FeelExpression> Items) : FeelExpression;
 public record FeelRange(FeelExpression Start, FeelExpression End) : FeelExpression;
 public record FeelSome(string Variable, FeelExpression InExpr, FeelExpression Predicate) : FeelExpression;

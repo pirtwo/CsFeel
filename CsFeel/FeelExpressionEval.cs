@@ -7,16 +7,56 @@ public static class FeelExpressionEval
     {
         return expression switch
         {
-            FeelLiteral x => x.Value,
-            FeelUnary x => EvalUnary(x.Op, x.Right, context),
-            FeelBinary x => EvalBinary(x.Left, x.Operator, x.Right, context),
-            FeelBetween x => EvalBetween(x.Left, x.LowerBoundExpr, x.UpperBoundExpr, context),
-            FeelInstanceOf x => EvalInstanceOf(x.Left, x.TypeName, context),
-            FeelList x => x.Items.Select(expr => Eval(expr, context)).ToList(),
-            FeelVariable x => context.TryGetValue(x.Name, out var value) ? value : null,
-            FeelFunctionCall x => EvalFunctionCall(x.Name, [.. x.Args], context),
+            FeelLiteral
+                x => x.Value,
+
+            FeelUnary
+                x => EvalUnary(x.Op, x.Right, context),
+
+            FeelBinary
+                x => EvalBinary(x.Left, x.Operator, x.Right, context),
+
+            FeelBetween
+                x => EvalBetween(x.Left, x.LowerBoundExpr, x.UpperBoundExpr, context),
+
+            FeelVariable
+                x => context.TryGetValue(x.Name, out var value) ? value : null,
+
+            FeelInstanceOf
+                x => EvalInstanceOf(x.Left, x.TypeName, context),
+
+            FeelFunctionCall
+                x => EvalFunctionCall(x.Name, [.. x.Args], context),
+
+            FeelList
+                x => x.Items.Select(expr => Eval(expr, context)).ToList(),
+
+            FeelContext
+                x => x.Properties.ToDictionary(p => p.Key, p => Eval(p.Value, context)),
+
+            FeelContextPropertyAccess
+                x => EvalContextPropertyAccess(x.Target, x.PropertyName, context),
+
             _ => throw new Exception(""),
         };
+    }
+
+    private static object? EvalContextPropertyAccess(
+        FeelExpression target,
+        string propertyName,
+        Dictionary<string, object> context)
+    {
+        var targetValue = Eval(target, context);
+        if (targetValue is Dictionary<string, object?> tv)
+        {
+            return tv.TryGetValue(propertyName, out var propValue)
+                ? propValue
+                : null;
+        }
+        else
+        {
+            throw new FeelParserException(FeelParserError.INVALID_PROPERTY_ACCESS);
+        }
     }
 
     private static bool EvalInstanceOf(

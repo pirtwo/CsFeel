@@ -1,21 +1,56 @@
-// using CsFeel.Internals;
+using Sprache;
 
-// namespace CsFeel.Test.ParserTests;
+namespace CsFeel.Test.ParserTests;
 
-// public class ContextExpression
-// {
-//     [Theory]
-//     [InlineData("{{a:1, b:2}}")]
-//     public void LiteralTest(string expression)
-//     {
-//         // arrange
-//         Tokenizer t = new(new StringReader(expression));
-//         Parser p = new(t);
+public class ContextExpression
+{
+    [Fact]
+    public void DeclerationTest()
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse("{a:1, b:\"hello\"}");
 
-//         // act
-//         var result = p.ParseExpression();
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
 
-//         // assert
-//         Assert.Equal(new { a = 1, b = 2 }, result);
-//     }
-// }
+        // assert
+        Assert.IsType<Dictionary<string, object?>>(result);
+        Assert.True(((Dictionary<string, object?>)result).ContainsKey("a"));
+        Assert.True(((Dictionary<string, object?>)result).ContainsKey("b"));
+        Assert.Equal(1, (decimal)((Dictionary<string, object?>)result)["a"]!);
+        Assert.Equal("hello", (string)((Dictionary<string, object?>)result)["b"]!);
+    }
+
+    [Fact]
+    public void NestedTest()
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse("{a:1, b:\"hello\", c:{x:12, y:null}}");
+
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
+
+        // assert
+        Assert.IsType<Dictionary<string, object?>>(result);
+        Assert.True(((Dictionary<string, object?>)result).ContainsKey("a"));
+        Assert.True(((Dictionary<string, object?>)result).ContainsKey("b"));
+        Assert.True(((Dictionary<string, object?>)result).ContainsKey("c"));
+
+        Assert.Equal(1, (decimal)((Dictionary<string, object?>)result)["a"]!);
+        Assert.Equal("hello", (string)((Dictionary<string, object?>)result)["b"]!);
+        Assert.IsType<Dictionary<string, object?>>(((Dictionary<string, object?>)result)["c"]);
+    }
+
+    [Fact]
+    public void PropertyAccessTest()
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse("{a:1, b:\"hello\"}.b");
+
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
+
+        // assert
+        Assert.Equal("hello", result);
+    }
+}
