@@ -32,6 +32,7 @@ public class BooleanExpression
     [InlineData("3 <= 3", true)]
     [InlineData("2.5 <= 2.3", false)]
     [InlineData("5 between 3 and 6", true)]
+    [InlineData("5 between 3 and 6 = true", true)]
     public void ComparisonTest(string input, bool expected)
     {
         // arrange

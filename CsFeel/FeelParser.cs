@@ -5,157 +5,6 @@ namespace CsFeel;
 
 public static class FeelParser
 {
-    static FeelParser()
-    {
-        _null =
-            from _nill in Parse.String("null").Token() select new FeelLiteral(null);
-
-        _bool =
-            from boolStr in Parse.String("true").Or(Parse.String("false")).Token().Text()
-            select new FeelLiteral(bool.Parse(boolStr));
-        _number =
-                Parse.DecimalInvariant.Select(value => new FeelLiteral(
-                    decimal.Parse(value, NumberStyles.Any, CultureInfo.InvariantCulture)));
-
-        _string =
-        from _lq in Parse.Char('"')
-        from content in Parse.CharExcept('"').Many().Text()
-        from _rq in Parse.Char('"')
-        select new FeelLiteral(content);
-
-        _identifier =
-        Parse.Identifier(Parse.Letter, Parse.LetterOrDigit).Select(name => new FeelVariable(name));
-
-        _context =
-        from _lb in Parse.Char('{').Token()
-        from entries in (
-            from key in Parse.Letter.AtLeastOnce().Text().Token()
-            from _colon in Parse.Char(':').Token()
-            from value in Expr
-            select new { key, value }).DelimitedBy(Parse.Char(',').Token())
-        from _rb in Parse.Char('}').Token()
-        select new FeelContext(entries.ToDictionary(e => e.key, e => e.value));
-
-        _list =
-        from _lb in Parse.Char('[').Token()
-        from items in _fullExpr.DelimitedBy(Parse.Char(',').Token())
-        from _rb in Parse.Char(']').Token()
-        select new FeelList(items);
-        _range =
-        from start in _number.Token()
-        from _dots in Parse.String("..").Token()
-        from end in _number.Token()
-        select new FeelRange(start, end);
-        _some =
-       from _some in Parse.String("some").Token()
-       from variable in _identifier.Select(v => ((FeelVariable)v).Name)
-       from _in in Parse.String("in").Token()
-       from collection in _list.Or(_range)
-       from _satisfies in Parse.String("satisfies").Token()
-       from condition in _fullExpr
-       select new FeelSome(variable, collection, condition);
-
-        _fnCall =
-         from name in Parse.Letter.AtLeastOnce().Text().Token()
-         from _lp in Parse.Char('(').Token()
-         from args in _fullExpr.DelimitedBy(Parse.Char(',').Token()).Optional()
-         from _rp in Parse.Char(')').Token()
-         select (FeelExpression)new FeelFunctionCall(name, args.GetOrElse([]));
-
-        _parn =
-                from _lp in Parse.Char('(').Token()
-                from expr in _fullExpr
-                from _rp in Parse.Char(')').Token()
-                select expr;
-
-        _ifThenElse =
-    from _if in Parse.String("if").Token()
-    from condition in _fullExpr
-    from _then in Parse.String("then").Token()
-    from thenExpr in _fullExpr
-    from _else in Parse.String("else").Token()
-    from elseExpr in _fullExpr
-    select new FeelIfElse(condition, thenExpr, elseExpr);
-
-        _instanceOf =
-                from left in _fullExpr
-                from _instanceOf in Parse.String("instance of").Token()
-                from typeName in Parse.Letter.AtLeastOnce().Token().Text()
-                select new FeelInstanceOf(left, typeName);
-
-        _between =
-            from left in _fullExpr
-            from _btw in Parse.String("between").Token()
-            from lower in _fullExpr
-            from _and in Parse.String("and").Token()
-            from upper in _fullExpr
-            select new FeelBetween(left, lower, upper);
-
-        _primaryParser =
-        _fnCall
-        .Or(_parn)
-        .Or(_context)
-        .Or(_null)
-        .Or(_bool)
-        .Or(_number)
-        .Or(_string)
-        .Or(_identifier);
-
-        _accessChain =
-           Parse.ChainOperator(
-               // operator parser: "." then identifier
-               Parse.Char('.').Then(_ => Parse.Letter.AtLeastOnce().Text().Token()),
-               _primaryParser,
-               // aggregator: (propName, target, _) -> new PropertyAccess
-               (propName, target, _) => new FeelContextPropertyAccess(target, propName)
-           );
-
-        _unary = (
-                from ops in Parse.String("not").Token()
-                    .Or(Parse.Char('-').Select(_ => "-"))
-                    .Or(Parse.Char('+').Select(_ => "+")).Token().Text().Many()
-                from term in _accessChain
-                select ops.Reverse().Aggregate(term, (expr, op) => new FeelUnary(op, expr))).Token();
-        _expo =
-               Parse.ChainOperator(Parse.String("**").Token().Text(),
-               _unary,
-               (op, left, right) => new FeelBinary(left, op, right));
-        _mult =
-                Parse.ChainOperator(Parse.Char('*').Or(Parse.Char('/')).Token().Select(c => c.ToString()),
-                _expo,
-                (op, left, right) => new FeelBinary(left, op, right));
-
-        _add =
-                Parse.ChainOperator(Parse.Char('+').Or(Parse.Char('-')).Token().Select(c => c.ToString()),
-                _mult,
-                (op, left, right) => new FeelBinary(left, op, right));
-
-        _cmp =
-                Parse.ChainOperator(Parse
-                        .String(">=")
-                        .Or(Parse.String("<="))
-                        .Or(Parse.String(">"))
-                        .Or(Parse.String("<"))
-                        .Or(Parse.String("="))
-                        .Or(Parse.String("!="))
-                        .Text()
-                        .Token(),
-                    _add,
-                    (op, left, right) => new FeelBinary(left, op, right));
-
-        _logical =
-                Parse.ChainOperator(Parse.String("and").Or(Parse.String("or")).Text().Token(),
-                _cmp,
-                (op, left, right) => new FeelBinary(left, op, right));
-        _fullExpr =
-                _ifThenElse
-                .Or(_some)
-                .Or(_list)
-                .Or(_range)
-                .Or(_instanceOf)
-                .Or(_between)
-                .Or(_logical);
-    }
 
     // Entry point (using Ref to allow recursion)
     public static readonly Parser<FeelExpression> Expr = Parse.Ref(() => _fullExpr);
@@ -234,22 +83,13 @@ public static class FeelParser
         from elseExpr in _fullExpr
         select new FeelIfElse(condition, thenExpr, elseExpr);
 
-    // 1.7) instance of, exp: x instance of y
-    static readonly Parser<FeelExpression> _instanceOf =
-        from left in _fullExpr
-        from _instanceOf in Parse.String("instance of").Token()
-        from typeName in Parse.Letter.AtLeastOnce().Token().Text()
-        select new FeelInstanceOf(left, typeName);
-
-    // 1.8) between, exp: x between y and z
-    static readonly Parser<FeelExpression> _between;
-
-
     // 2) primary parser: functions, parentheses, context, literals, identifiers
     static readonly Parser<FeelExpression> _primaryParser =
         _fnCall
         .Or(_parn)
         .Or(_context)
+        .Or(_list)
+        .Or(_range)
         .Or(_null)
         .Or(_bool)
         .Or(_number)
@@ -304,13 +144,27 @@ public static class FeelParser
         _cmp,
         (op, left, right) => new FeelBinary(left, op, right));
 
+    // 1.7) instance of, exp: x instance of y
+    static readonly Parser<FeelExpression> _instanceOf =
+        from left in _accessChain
+        from _instanceOf in Parse.String("instance of").Token()
+        from typeName in Parse.Letter.AtLeastOnce().Token().Text()
+        select new FeelInstanceOf(left, typeName);
+
+    // 1.8) between, exp: x between y and z
+    static readonly Parser<FeelExpression> _between =
+        from left in _accessChain
+        from _btw in Parse.String("between").Token()
+        from lower in _accessChain
+        from _and in Parse.String("and").Token()
+        from upper in _accessChain
+        select new FeelBetween(left, lower, upper);
+
     // top level combine all
     static readonly Parser<FeelExpression> _fullExpr =
         _ifThenElse
         .Or(_some)
-        .Or(_list)
-        .Or(_range)
-        .Or(_instanceOf)
         .Or(_between)
+        .Or(_instanceOf)
         .Or(_logical);
 }
