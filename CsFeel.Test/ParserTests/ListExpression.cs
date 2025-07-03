@@ -23,6 +23,12 @@ public class ListExpression
 
     [Theory]
     [InlineData("5 in [1..10]", true)]
+    [InlineData("5 in [1..5)", false)]
+    [InlineData("1 in [1..5]", true)]
+    [InlineData("1 in (1..5]", false)]
+    [InlineData("-1 in [-2..0]", true)]
+    [InlineData("-1 in [0..5]", false)]
+    [InlineData("11 in [1..10]", false)]
     public void RangeTest(string input, bool expected)
     {
         // arrange
