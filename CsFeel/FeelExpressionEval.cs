@@ -137,6 +137,13 @@ public static class FeelExpressionEval
         string propertyName,
         Dictionary<string, object> context)
     {
+        if (target is FeelContext ctx)
+        {
+            return ctx.Properties.TryGetValue(propertyName, out var expr)
+                ? Eval(expr, context)
+                : null;
+        }
+
         var targetValue = Eval(target, context);
         if (targetValue is Dictionary<string, object?> tv)
         {
@@ -144,10 +151,8 @@ public static class FeelExpressionEval
                 ? propValue
                 : null;
         }
-        else
-        {
-            throw new FeelParserException(FeelParserError.INVALID_PROPERTY_ACCESS);
-        }
+
+        throw new FeelParserException(FeelParserError.INVALID_PROPERTY_ACCESS);
     }
 
     private static bool EvalInstanceOf(

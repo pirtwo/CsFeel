@@ -53,4 +53,17 @@ public class ContextExpression
         // assert
         Assert.Equal("hello", result);
     }
+
+    [Fact]
+    public void NestedPropertyAccessTest()
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse("{point:{x:1,y:2}}.point.x");
+
+        // act
+        var result = FeelExpressionEval.Eval(exp, []);
+
+        // assert
+        Assert.Equal(1m, (decimal)result!);
+    }
 }
