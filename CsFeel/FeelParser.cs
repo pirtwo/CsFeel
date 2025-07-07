@@ -5,12 +5,10 @@ namespace CsFeel;
 
 public static class FeelParser
 {
-    // Entry point (using Ref to allow recursion)
+    // _______________ 1. parser pipeline: Entry point
     public static readonly Parser<FeelExpression> Expr = Parse.Ref(() => _fullExpr);
 
-    // ____________ 1. expressions ___________//
-
-    // literals: null, bool, number, string and identifiers
+    // _______________ 2. parser pipeline: leaf definitions (AST leaf nodes)
     static readonly Parser<FeelExpression> _null =
         from _nill in Parse.String("null").Token() select new FeelLiteral(null);
     static readonly Parser<FeelExpression> _bool =
@@ -26,8 +24,6 @@ public static class FeelParser
         select new FeelLiteral(content);
     static readonly Parser<FeelExpression> _identifier =
         Parse.Identifier(Parse.Letter, Parse.LetterOrDigit).Select(name => new FeelVariable(name));
-
-    // context expression, exp: { key:expr }
     static readonly Parser<FeelExpression> _context =
         from _lb in Parse.Char('{').Token()
         from entries in (
@@ -37,8 +33,6 @@ public static class FeelParser
             select new { key, value }).DelimitedBy(Parse.Char(',').Token())
         from _rb in Parse.Char('}').Token()
         select new FeelContext(entries.ToDictionary(e => e.key, e => e.value));
-
-    // list, range and some
     static readonly Parser<FeelExpression> _list =
         from _lb in Parse.Char('[').Token()
         from items in _add.DelimitedBy(Parse.Char(',').Token())
@@ -51,16 +45,12 @@ public static class FeelParser
         from ub in _add.Token()
         from close in Parse.Char(']').Or(Parse.Char(')')).Token()
         select new FeelRange(lb, ub, open == '[', close == ']')).Token();
-
-    // function call
     static readonly Parser<FeelExpression> _fnCall =
         from name in Parse.Letter.AtLeastOnce().Text().Token()
         from _lp in Parse.Char('(').Token()
         from args in _add.DelimitedBy(Parse.Char(',').Token()).Optional()
         from _rp in Parse.Char(')').Token()
         select (FeelExpression)new FeelFunctionCall(name, args.GetOrElse([]));
-
-    // Parenthesized
     static readonly Parser<FeelExpression> _parn =
         from _lp in Parse.Char('(').Token()
         from expr in _logical
@@ -68,10 +58,8 @@ public static class FeelParser
         select expr;
 
 
-    // ____________ 2. parser pipeline ___________//
-
-    // primary: functions, parentheses, context, literals, identifiers
-    static readonly Parser<FeelExpression> _primary =
+    // _______________ 3. parser pipeline: Atomics
+    static readonly Parser<FeelExpression> _atom =
         _fnCall
         .Or(_parn)
         .Or(_context)
@@ -83,8 +71,10 @@ public static class FeelParser
         .Or(_string)
         .Or(_identifier);
 
+
+    // _______________ 3. parser pipeline: property access
     static readonly Parser<FeelExpression> _propertyAccess =
-        from target in _primary
+        from target in _atom
         from accesses in (
             from _ in Parse.Char('.').Token()
             from prop in Parse.Not(Parse.Char('.')).Then(_ =>
@@ -94,17 +84,14 @@ public static class FeelParser
         ).Many()
         select accesses.Aggregate(target, (current, access) => new FeelContextPropertyAccess(current, access.prop));
 
-    static readonly Parser<FeelExpression> _base = _propertyAccess.Or(_primary);
 
-    // Unary operators
+    // _______________ 4. parser pipeline: unary & binary
     static readonly Parser<FeelExpression> _unary = (
         from ops in Parse.String("not").Token()
             .Or(Parse.Char('-').Select(_ => "-"))
             .Or(Parse.Char('+').Select(_ => "+")).Token().Text().Many()
-        from term in _base
+        from term in _propertyAccess.Or(_atom)
         select ops.Reverse().Aggregate(term, (expr, op) => new FeelUnary(op, expr))).Token();
-
-    // Binary operators with proper precedence
     static readonly Parser<FeelExpression> _expo =
         Parse.ChainOperator(Parse.String("**").Token().Text(),
         _unary,
@@ -118,7 +105,7 @@ public static class FeelParser
         _mult,
         (op, left, right) => new FeelBinary(left, op, right));
 
-    // if then else
+    // _______________ 5. parser pipeline: comparison and logical
     static readonly Parser<FeelExpression> _ifThenElse =
         from _if in Parse.String("if").Token()
         from condition in _logical
@@ -127,8 +114,6 @@ public static class FeelParser
         from _else in Parse.String("else").Token()
         from elseExpr in _logical
         select new FeelIfElse(condition, thenExpr, elseExpr);
-
-    // some
     static readonly Parser<FeelExpression> _some =
         from _some in Parse.String("some").Token()
         from variable in _identifier.Select(v => ((FeelVariable)v).Name)
@@ -137,30 +122,23 @@ public static class FeelParser
         from _satisfies in Parse.String("satisfies").Token()
         from condition in _logical
         select new FeelSome(variable, collection, condition);
-
-    // instance of, exp: x instance of y
     static readonly Parser<FeelExpression> _instanceOf =
-        from left in _base
+        from left in _add
         from _instanceOf in Parse.String("instance of").Token()
         from typeName in Parse.Letter.AtLeastOnce().Token().Text()
         select new FeelInstanceOf(left, typeName);
-
-    //  between, exp: x between y and z
     static readonly Parser<FeelExpression> _between =
-        from left in _base
+        from left in _add
         from _btw in Parse.String("between").Token()
-        from lower in _base
+        from lower in _add
         from _and in Parse.String("and").Token()
-        from upper in _base
+        from upper in _add
         select new FeelBetween(left, lower, upper);
-
-    // in [x..y] 
     static readonly Parser<FeelExpression> _in =
         from val in _add
         from _word in Parse.String("in").Token()
-        from coll in _base
+        from coll in _add
         select new FeelIn(val, coll);
-
     static readonly Parser<FeelExpression> _cmp =
         _instanceOf
         .Or(_between)
@@ -185,6 +163,6 @@ public static class FeelParser
         (op, left, right) => new FeelBinary(left, op, right));
 
 
-    //__________ top level (combine all) _________//
+    //__________ (combine all) _________//
     static readonly Parser<FeelExpression> _fullExpr = _ifThenElse.Or(_logical);
 }
