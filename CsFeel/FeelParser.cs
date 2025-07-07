@@ -30,9 +30,10 @@ public static class FeelParser
             from key in Parse.Letter.AtLeastOnce().Text().Token()
             from _colon in Parse.Char(':').Token()
             from value in _add
-            select new { key, value }).DelimitedBy(Parse.Char(',').Token())
+            select new KeyValuePair<string, FeelExpression>(key, value)
+        ).DelimitedBy(Parse.Char(',').Token()).Optional()
         from _rb in Parse.Char('}').Token()
-        select new FeelContext(entries.ToDictionary(e => e.key, e => e.value));
+        select new FeelContext(entries.GetOrElse([]).ToDictionary(e => e.Key, e => e.Value));
     static readonly Parser<FeelExpression> _list =
         from _lb in Parse.Char('[').Token()
         from items in _add.DelimitedBy(Parse.Char(',').Token())

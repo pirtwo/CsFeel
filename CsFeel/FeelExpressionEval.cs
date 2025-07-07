@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace CsFeel;
 
 public static class FeelExpressionEval
@@ -167,6 +169,8 @@ public static class FeelExpressionEval
             "number" => Eval(left, context) is decimal,
             "string" => Eval(left, context) is string,
             "boolean" => Eval(left, context) is bool,
+            "context" => Eval(left, context) is Dictionary<string, FeelExpression>,
+            "function" => Eval(left, context) is Dictionary<string, FeelExpression>,
             _ => throw new FeelParserException(FeelParserError.INVALID_OPERAND)
         };
 
@@ -214,24 +218,28 @@ public static class FeelExpressionEval
     {
         return funcName switch
         {
+            "string" =>
+                Eval(args[0], context)?.ToString(),
             "not" =>
                 Eval(args[0], context) is bool v
                 ? !v
-                : throw new FeelParserException(FeelParserError.INVALID_ARGUMENT),
+                : null,
             "date" =>
                 DateTime.TryParse(Eval(args[0], context) as string, out var date)
                 ? date.Date
-                : throw new FeelParserException(FeelParserError.INVALID_ARGUMENT, date.ToString()),
+                : null,
             "time" =>
                 TimeSpan.TryParse(Eval(args[0], context) as string, out var time)
                 ? time
-                : throw new FeelParserException(FeelParserError.INVALID_ARGUMENT, time.ToString()),
+                : null,
             "date and time" =>
                 DateTime.TryParse(Eval(args[0], context) as string, out var dateTime)
                 ? dateTime
-                : throw new FeelParserException(FeelParserError.INVALID_ARGUMENT, dateTime.ToString()),
-            "string" =>
-                Eval(args[0], context)?.ToString(),
+                : null,
+            "number" =>
+                decimal.TryParse(Eval(args[0], context)?.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var result)
+                    ? result
+                    : null,
             _ =>
                 throw new FeelParserException(FeelParserError.INVALID_FUNCTION_NAME)
         };
