@@ -16,3 +16,4 @@ public record FeelRange(FeelExpression LowerBound, FeelExpression UpperBound, bo
 public record FeelSome(string Variable, FeelExpression Collection, FeelExpression Predicate) : FeelExpression;
 public record FeelIn(FeelExpression ValueExpr, FeelExpression CollectionExpr) : FeelExpression;
 public record FeelFunctionCall(string Name, IEnumerable<FeelExpression> Args) : FeelExpression;
+public record FeelAnonymousFunction(List<string> Parameters, FeelExpression Body) : FeelExpression;

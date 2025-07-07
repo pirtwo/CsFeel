@@ -46,6 +46,13 @@ public static class FeelParser
         from ub in _add.Token()
         from close in Parse.Char(']').Or(Parse.Char(')')).Token()
         select new FeelRange(lb, ub, open == '[', close == ']')).Token();
+    static readonly Parser<FeelExpression> _anonymousFn =
+        from _fn in Parse.String("function").Token()
+        from _lp in Parse.Char('(').Token()
+        from parms in Parse.Identifier(Parse.Letter, Parse.LetterOrDigit).DelimitedBy(Parse.Char(',').Token())
+        from _rp in Parse.Char(')').Token()
+        from body in _logical
+        select new FeelAnonymousFunction([.. parms], body);
     static readonly Parser<FeelExpression> _fnCall =
         from name in Parse.Letter.AtLeastOnce().Text().Token()
         from _lp in Parse.Char('(').Token()
@@ -61,7 +68,8 @@ public static class FeelParser
 
     // _______________ 3. parser pipeline: Atomics
     static readonly Parser<FeelExpression> _atom =
-        _fnCall
+        _anonymousFn
+        .Or(_fnCall)
         .Or(_parn)
         .Or(_context)
         .Or(_range)
@@ -164,6 +172,6 @@ public static class FeelParser
         (op, left, right) => new FeelBinary(left, op, right));
 
 
-    //__________ (combine all) _________//
+    // _______________ 6. parser pipeline: if then else
     static readonly Parser<FeelExpression> _fullExpr = _ifThenElse.Or(_logical);
 }
