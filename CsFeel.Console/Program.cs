@@ -19,15 +19,17 @@ while (true)
         // 1) Parse
         var expr = FeelParser.Expr.Parse(line);
 
-        // 2) AST dump
+        // 2) Dump
         Console.WriteLine("AST DUMP:");
         FeelExpressionPrinter.Print(expr);
         Console.WriteLine();
 
-        // 3) Evaluate
+        // 3) Eval
         var result = FeelExpressionEval.Eval(expr, globals);
 
-        // 4) Show value (arrays flattened)
+        // 4) Show
+        if (result is Dictionary<string, object> dictionary)
+            globals = new Dictionary<string, object>(dictionary);
         if (result is IEnumerable<object> seq)
             Console.WriteLine("=> [" + string.Join(", ", seq) + "]");
         else
