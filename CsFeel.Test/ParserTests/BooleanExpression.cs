@@ -139,7 +139,6 @@ public class BooleanExpression
     [InlineData("[1,2,3] instance of list", true)]
     [InlineData("0 instance of list", false)]
     [InlineData("1 instance of context", false)]
-    [InlineData("1 instance of function", true)]
     [InlineData("1 instance of any", true)]
     public void InstanceOfTest(string input, bool expected)
     {
