@@ -2,7 +2,7 @@ namespace CsFeel.Evaluators;
 
 public static partial class FeelExpressionEvaluator
 {
-    public static object? Eval(FeelExpression expression, Dictionary<string, object> context) => expression switch
+    public static object? Eval(FeelExpression expression, Dictionary<string, object?> context) => expression switch
     {
         FeelLiteral
             x => x.Value,
@@ -36,6 +36,9 @@ public static partial class FeelExpressionEvaluator
 
         FeelIn
             x => EvalIn(x.ValueExpr, x.CollectionExpr, context),
+
+        FeelFor
+            x => EvalFor(x.Variable, x.Collection, x.Body, context),
 
         FeelContext
             x => EvalContext(x.Properties, context),

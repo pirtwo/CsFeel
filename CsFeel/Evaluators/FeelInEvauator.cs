@@ -6,7 +6,7 @@ public static partial class FeelExpressionEvaluator
     private static bool EvalIn(
         FeelExpression valueExpr,
         FeelExpression collectionExpr,
-        Dictionary<string, object> context)
+        Dictionary<string, object?> context)
     {
         var lhsValue = Eval(valueExpr, context);
         var rhsValue = Eval(collectionExpr, context);

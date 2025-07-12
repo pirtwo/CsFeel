@@ -6,7 +6,7 @@ public static partial class FeelExpressionEvaluator
         FeelExpression left,
         FeelExpression lowerBoundExpr,
         FeelExpression upperBoundExpr,
-        Dictionary<string, object> context)
+        Dictionary<string, object?> context)
     {
         var leftVal = Eval(left, context);
         var lowerBoundVal = Eval(lowerBoundExpr, context);

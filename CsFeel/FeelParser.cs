@@ -118,14 +118,14 @@ public static class FeelParser
         from _else in Parse.String("else").Token()
         from elseExpr in _logical
         select new FeelIfElse(condition, thenExpr, elseExpr);
-    static readonly Parser<FeelExpression> _some =
-        from _some in Parse.String("some").Token()
-        from variable in _identifier.Select(v => ((FeelVariable)v).Name)
+    static readonly Parser<FeelExpression> _for =
+        from _for in Parse.String("for").Token()
+        from variable in Parse.Identifier(Parse.Letter, Parse.LetterOrDigit).Token()
         from _in in Parse.String("in").Token()
-        from collection in _list.Or(_range)
-        from _satisfies in Parse.String("satisfies").Token()
-        from condition in _logical
-        select new FeelSome(variable, collection, condition);
+        from collection in _add
+        from _return in Parse.String("return").Token()
+        from body in _add
+        select new FeelFor(variable, collection, body);
     static readonly Parser<FeelExpression> _instanceOf =
         from left in _add
         from _instanceOf in Parse.String("instance of").Token()
@@ -138,13 +138,22 @@ public static class FeelParser
         from _and in Parse.String("and").Token()
         from upper in _add
         select new FeelBetween(left, lower, upper);
+    static readonly Parser<FeelExpression> _some =
+        from _some in Parse.String("some").Token()
+        from variable in _identifier.Select(v => ((FeelVariable)v).Name)
+        from _in in Parse.String("in").Token()
+        from collection in _list.Or(_range)
+        from _satisfies in Parse.String("satisfies").Token()
+        from condition in _logical
+        select new FeelSome(variable, collection, condition);
     static readonly Parser<FeelExpression> _in =
         from val in _add
         from _word in Parse.String("in").Token()
         from coll in _add
         select new FeelIn(val, coll);
     static readonly Parser<FeelExpression> _cmp =
-        _instanceOf
+        _for
+        .Or(_instanceOf)
         .Or(_between)
         .Or(_some)
         .Or(_in)

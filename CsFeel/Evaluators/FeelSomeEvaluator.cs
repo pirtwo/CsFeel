@@ -6,13 +6,13 @@ public static partial class FeelExpressionEvaluator
         string variable,
         FeelExpression collection,
         FeelExpression predicate,
-        Dictionary<string, object> context)
+        Dictionary<string, object?> context)
     {
         var items = Eval(collection, context) as IEnumerable<object>
             ?? throw new FeelParserException(FeelParserError.INVALID_OPERATION);
         foreach (var item in items)
         {
-            var ctx2 = new Dictionary<string, object>(context)
+            var ctx2 = new Dictionary<string, object?>(context)
             {
                 [variable] = item
             };

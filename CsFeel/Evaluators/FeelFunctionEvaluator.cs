@@ -4,7 +4,10 @@ namespace CsFeel.Evaluators;
 
 public static partial class FeelExpressionEvaluator
 {
-    private static object? EvalFunctionCall(string funcName, List<FeelExpression> args, Dictionary<string, object> context)
+    private static object? EvalFunctionCall(
+        string funcName,
+        List<FeelExpression> args,
+        Dictionary<string, object?> context)
     {
         return funcName switch
         {

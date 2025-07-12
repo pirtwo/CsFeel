@@ -3,7 +3,7 @@ using CsFeel;
 using CsFeel.Evaluators;
 
 Console.WriteLine("CsFEEL REPL - type 'exit' to quit");
-var globals = new Dictionary<string, object>();
+var globals = new Dictionary<string, object?>();
 
 while (true)
 {
@@ -30,7 +30,7 @@ while (true)
 
         // 4) Show
         if (result is Dictionary<string, object> dictionary && dictionary.TryGetValue("_globals", out object? value))
-            globals = new Dictionary<string, object>((Dictionary<string, object>)value);
+            globals = new Dictionary<string, object?>((Dictionary<string, object?>)value);
         if (result is IEnumerable<object> seq)
             Console.WriteLine("=> [" + string.Join(", ", seq) + "]");
         else

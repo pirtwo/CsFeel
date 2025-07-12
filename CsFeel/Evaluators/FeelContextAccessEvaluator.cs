@@ -5,7 +5,7 @@ public static partial class FeelExpressionEvaluator
     private static object? EvalContextPropertyAccess(
         FeelExpression target,
         string propertyName,
-        Dictionary<string, object> context)
+        Dictionary<string, object?> context)
     {
         if (target is FeelContext ctx)
         {
