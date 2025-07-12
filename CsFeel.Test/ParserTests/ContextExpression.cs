@@ -1,3 +1,4 @@
+using CsFeel.Evaluators;
 using Sprache;
 
 namespace CsFeel.Test.ParserTests;
@@ -11,7 +12,7 @@ public class ContextExpression
         var exp = FeelParser.Expr.Parse("{a:1, b:\"hello\"}");
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.IsType<Dictionary<string, object?>>(result);
@@ -28,7 +29,7 @@ public class ContextExpression
         var exp = FeelParser.Expr.Parse("{a:1, b:\"hello\", c:{x:12, y:null}}");
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.IsType<Dictionary<string, object?>>(result);
@@ -48,7 +49,7 @@ public class ContextExpression
         var exp = FeelParser.Expr.Parse("{a:1, b:\"hello\"}.b");
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal("hello", result);
@@ -61,7 +62,7 @@ public class ContextExpression
         var exp = FeelParser.Expr.Parse("{point:{x:1,y:2}}.point.x");
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(1m, (decimal)result!);

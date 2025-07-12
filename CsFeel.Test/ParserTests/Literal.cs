@@ -1,4 +1,5 @@
 using System.Globalization;
+using CsFeel.Evaluators;
 using Sprache;
 
 namespace CsFeel.Test.ParserTests;
@@ -13,7 +14,7 @@ public class Literal
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Null(result);
@@ -31,7 +32,7 @@ public class Literal
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -45,7 +46,7 @@ public class Literal
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -60,7 +61,7 @@ public class Literal
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -74,20 +75,23 @@ public class Literal
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(DateTime.Parse(expected), result);
     }
 
     [Fact]
-    public void DateThrowTest()
+    public void DateNullTest()
     {
         // arrange
         var exp = FeelParser.Expr.Parse("date(11111)");
 
-        // act & assert
-        Assert.ThrowsAny<Exception>(() => FeelExpressionEval.Eval(exp, []));
+        // act 
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.Null(result);
     }
 
     [Fact]
@@ -97,7 +101,7 @@ public class Literal
         var exp = FeelParser.Expr.Parse("[1,\"hello\",null]");
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.IsType<List<object?>>(result);
@@ -115,7 +119,7 @@ public class Literal
         var exp = FeelParser.Expr.Parse("[12,22,[12,9]]");
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.IsType<List<object?>>(result);

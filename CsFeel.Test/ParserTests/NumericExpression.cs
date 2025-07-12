@@ -1,3 +1,4 @@
+using CsFeel.Evaluators;
 using Sprache;
 
 namespace CsFeel.Test.ParserTests;
@@ -17,7 +18,7 @@ public class NumericExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -31,7 +32,7 @@ public class NumericExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -45,7 +46,7 @@ public class NumericExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -59,7 +60,7 @@ public class NumericExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -73,7 +74,7 @@ public class NumericExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -87,7 +88,7 @@ public class NumericExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -103,7 +104,7 @@ public class NumericExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);

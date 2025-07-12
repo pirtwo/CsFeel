@@ -1,7 +1,8 @@
-﻿using CsFeel;
-using Sprache;
+﻿using Sprache;
+using CsFeel;
+using CsFeel.Evaluators;
 
-Console.WriteLine("FEEL REPL - type 'exit' to quit");
+Console.WriteLine("CsFEEL REPL - type 'exit' to quit");
 var globals = new Dictionary<string, object>();
 
 while (true)
@@ -25,11 +26,11 @@ while (true)
         Console.WriteLine();
 
         // 3) Eval
-        var result = FeelExpressionEval.Eval(expr, globals);
+        var result = FeelExpressionEvaluator.Eval(expr, globals);
 
         // 4) Show
-        if (result is Dictionary<string, object> dictionary)
-            globals = new Dictionary<string, object>(dictionary);
+        if (result is Dictionary<string, object> dictionary && dictionary.TryGetValue("_globals", out object? value))
+            globals = new Dictionary<string, object>((Dictionary<string, object>)value);
         if (result is IEnumerable<object> seq)
             Console.WriteLine("=> [" + string.Join(", ", seq) + "]");
         else

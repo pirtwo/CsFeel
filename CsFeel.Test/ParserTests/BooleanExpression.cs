@@ -1,3 +1,4 @@
+using CsFeel.Evaluators;
 using Sprache;
 
 namespace CsFeel.Test.ParserTests;
@@ -13,7 +14,7 @@ public class BooleanExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -31,6 +32,7 @@ public class BooleanExpression
     [InlineData("3 < 2", false)]
     [InlineData("3 <= 3", true)]
     [InlineData("2.5 <= 2.3", false)]
+    [InlineData("date(\"2020-01-01\") > date(\"2020-01-02\")", false)]
     [InlineData("5 between 3 and 6", true)]
     [InlineData("5 between 3 and 6 = true", true)]
     public void ComparisonTest(string input, bool expected)
@@ -39,7 +41,7 @@ public class BooleanExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -56,7 +58,7 @@ public class BooleanExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -73,7 +75,7 @@ public class BooleanExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -88,7 +90,7 @@ public class BooleanExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Null(result);
@@ -105,7 +107,7 @@ public class BooleanExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);
@@ -119,7 +121,7 @@ public class BooleanExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Null(result);
@@ -146,7 +148,7 @@ public class BooleanExpression
         var exp = FeelParser.Expr.Parse(input);
 
         // act
-        var result = FeelExpressionEval.Eval(exp, []);
+        var result = FeelExpressionEvaluator.Eval(exp, []);
 
         // assert
         Assert.Equal(expected, result);

@@ -23,11 +23,14 @@ public static class FeelParser
         from _rq in Parse.Char('"')
         select new FeelLiteral(content);
     static readonly Parser<FeelExpression> _identifier =
-        Parse.Identifier(Parse.Letter, Parse.LetterOrDigit).Select(name => new FeelVariable(name));
+        Parse.Identifier(
+            Parse.Letter.Or(Parse.Char('_')),
+            Parse.LetterOrDigit.Or(Parse.Char('_'))
+        ).Select(name => new FeelVariable(name));
     static readonly Parser<FeelExpression> _context =
         from _lb in Parse.Char('{').Token()
         from entries in (
-            from key in Parse.Letter.AtLeastOnce().Text().Token()
+            from key in Parse.Identifier(Parse.Letter.Or(Parse.Char('_')), Parse.LetterOrDigit.Or(Parse.Char('_'))).Text().Token()
             from _colon in Parse.Char(':').Token()
             from value in _add
             select new KeyValuePair<string, FeelExpression>(key, value)
