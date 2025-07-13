@@ -2,7 +2,7 @@
 using CsFeel;
 using CsFeel.Evaluators;
 
-Console.WriteLine("CsFEEL REPL - type 'exit' to quit");
+Console.WriteLine("FEEL REPL - type 'exit' to quit");
 var globals = new Dictionary<string, object?>();
 
 while (true)
