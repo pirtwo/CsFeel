@@ -230,7 +230,7 @@ public static partial class FeelExpressionEvaluator
     private static bool? FnOdd(
         List<FeelExpression> args, Dictionary<string, object?> context)
     {
-        if (args.Count != 2)
+        if (args.Count != 1)
         {
             throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
         }
@@ -241,7 +241,7 @@ public static partial class FeelExpressionEvaluator
     private static bool? FnEven(
         List<FeelExpression> args, Dictionary<string, object?> context)
     {
-        if (args.Count != 2)
+        if (args.Count != 1)
         {
             throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
         }
@@ -252,7 +252,7 @@ public static partial class FeelExpressionEvaluator
     private static decimal? FnSqrt(
         List<FeelExpression> args, Dictionary<string, object?> context)
     {
-        if (args.Count != 2)
+        if (args.Count != 1)
         {
             throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
         }

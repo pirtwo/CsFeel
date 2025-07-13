@@ -46,6 +46,9 @@ public static partial class FeelExpressionEvaluator
         FeelContextPropertyAccess
             x => EvalContextPropertyAccess(x.Target, x.PropertyName, context),
 
+        FeelIfElse
+            x => EvalIfThen(x.Condition, x.ThenExpr, x.ElseExpr, context),
+
         _ => throw new FeelParserException(FeelParserError.INVALID_EXPRESSION),
     };
 }

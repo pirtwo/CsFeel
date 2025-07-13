@@ -4,13 +4,10 @@ public static class FeelExpressionPrinter
 {
     public static void Print(FeelExpression expr, string indent = "", bool isLast = true)
     {
-
         var marker = isLast ? "└─ " : "├─ ";
         Console.WriteLine(indent + marker + NodeLabel(expr));
 
-
         indent += isLast ? "   " : "│  ";
-
 
         var children = GetChildren(expr).ToList();
         for (int i = 0; i < children.Count; i++)
@@ -18,14 +15,16 @@ public static class FeelExpressionPrinter
             var (label, childExpr) = children[i];
 
             if (label != null)
+            {
                 Console.WriteLine(indent + (i == children.Count - 1 ? "└─ " : "├─ ") + $"{label}:");
+            }
+
             var nextIndent = indent + (label != null
-                                       ? (i == children.Count - 1 ? "   " : "│  ")
-                                       : "");
+                ? (i == children.Count - 1 ? "   " : "│  ")
+                : "");
             Print(childExpr, nextIndent, i == children.Count - 1);
         }
     }
-
 
     private static string NodeLabel(FeelExpression expr) => expr switch
     {
@@ -42,7 +41,6 @@ public static class FeelExpressionPrinter
         FeelInstanceOf io => $"InstanceOf({io.TypeName})",
         _ => expr.GetType().Name
     };
-
 
     private static IEnumerable<(string? slot, FeelExpression child)> GetChildren(FeelExpression expr)
     {
@@ -77,10 +75,10 @@ public static class FeelExpressionPrinter
                 yield return ("ElseBranch", ite.ElseExpr);
                 break;
 
-            // case FeelSome se:
-            //     yield return ("Collection", se.Predicate);
-            //     yield return ("Predicate", se.Predicate);
-            //     break;
+            case FeelSome se:
+                yield return ("Collection", se.Predicate);
+                yield return ("Predicate", se.Predicate);
+                break;
 
             case FeelBetween be:
                 yield return ("Value", be.Left);
