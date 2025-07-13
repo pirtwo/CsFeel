@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using System.Globalization;
 using Sprache;
 
@@ -50,7 +51,15 @@ public static class FeelParser
         from close in Parse.Char(']').Or(Parse.Char(')')).Token()
         select new FeelRange(lb, ub, open == '[', close == ']')).Token();
     static readonly Parser<FeelExpression> _fnCall =
-        from name in Parse.Letter.AtLeastOnce().Text().Token()
+        from name in (
+            from _start in Parse.Letter.AtLeastOnce().Text()
+            from _rest in (
+                from _space in Parse.Char(' ').Many()
+                from _part in Parse.Letter.AtLeastOnce().Text()
+                select " " + _part
+            ).Many()
+            select _start + string.Concat(_rest)
+        ).Token()
         from _lp in Parse.Char('(').Token()
         from args in _add.DelimitedBy(Parse.Char(',').Token()).Optional()
         from _rp in Parse.Char(')').Token()

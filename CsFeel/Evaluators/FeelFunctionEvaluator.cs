@@ -78,19 +78,31 @@ public static partial class FeelExpressionEvaluator
         }
 
         var start = Eval(args[1], context) is decimal val
-            ? (int)(val - 1) : throw new FeelParserException(FeelParserError.INVALID_TYPE);
+            ? (int)val
+            : throw new FeelParserException(FeelParserError.INVALID_TYPE);
 
         if (args.Count == 2)
         {
-            return str[(start > 0
-                ? start < str.Length ? start : str.Length - 1
-                : Math.Max(0, str.Length - Math.Abs(start)))..];
+            return str[(
+                start > 0
+                    ? start <= str.Length
+                        ? start - 1
+                        : str.Length
+                    : Math.Max(0, str.Length - Math.Abs(start == 0 ? -1 : start))
+            )..];
         }
         else
         {
-            var subLen = Eval(args[1], context) is decimal lenVal
+            var subLen = Eval(args[2], context) is decimal lenVal
                 ? (int)lenVal : throw new FeelParserException(FeelParserError.INVALID_TYPE);
-            return str.Substring(start, Math.Min(str.Length - 1, subLen));
+
+            return str.Substring(
+                start > 0
+                    ? start <= str.Length
+                        ? start - 1
+                        : str.Length
+                    : Math.Max(0, str.Length - Math.Abs(start == 0 ? -1 : start))
+                , Math.Min(str.Length - 1, subLen));
         }
     }
 
