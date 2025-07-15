@@ -26,6 +26,7 @@ public static partial class FeelExpressionEvaluator
             return result;
         }
 
-        throw new FeelParserException(FeelParserError.INVALID_TYPE);
+        throw new FeelParserException(
+            FeelParserError.FOR_INVALID_COLLECTION_VALUE, list?.ToString() ?? "");
     }
 }

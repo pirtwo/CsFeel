@@ -8,9 +8,14 @@ public static partial class FeelExpressionEvaluator
         FeelExpression predicate,
         Dictionary<string, object?> context)
     {
-        var items = Eval(collection, context) as IEnumerable<object>
-            ?? throw new FeelParserException(FeelParserError.INVALID_OPERATION);
-        foreach (var item in items)
+        var items = Eval(collection, context);
+        if (items is not IEnumerable<object>)
+        {
+            throw new FeelParserException(
+                FeelParserError.SOME_INVALID_COLLECTION_VALUE, items?.ToString() ?? "");
+        }
+
+        foreach (var item in items as IEnumerable<object> ?? [])
         {
             var ctx2 = new Dictionary<string, object?>(context)
             {
@@ -27,7 +32,8 @@ public static partial class FeelExpressionEvaluator
             }
             else
             {
-                throw new FeelParserException(FeelParserError.INVALID_OPERATION);
+                throw new FeelParserException(
+                    FeelParserError.SOME_INVALID_PREDICATE_VALUE, val?.ToString() ?? "");
             }
         }
 

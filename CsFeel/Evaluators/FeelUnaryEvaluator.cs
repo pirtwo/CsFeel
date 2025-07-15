@@ -7,14 +7,15 @@ public static partial class FeelExpressionEvaluator
         var rhsVal = Eval(lhs, context);
         if (rhsVal is not decimal)
         {
-            throw new FeelParserException(FeelParserError.INVALID_RIGHT_HAND_VALUE);
+            throw new FeelParserException(
+                FeelParserError.UNARY_INVALID_RIGHT_HAND_VALUE, rhsVal?.ToString() ?? "");
         }
 
         return op switch
         {
             "+" => rhsVal,
             "-" => -(decimal)rhsVal,
-            _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op),
+            _ => throw new FeelParserException(FeelParserError.UNARY_INVALID_OPERATOR, op),
         };
     }
 }

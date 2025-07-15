@@ -36,6 +36,8 @@ public static partial class FeelExpressionEvaluator
             return list;
         }
 
-        throw new FeelParserException(FeelParserError.UNSUPPORTED_RANGE_TYPE);
+        throw new FeelParserException(
+            FeelParserError.RANGE_INVALID_TYPE,
+            $"{lowerBoundValue?.GetType().Name},{upperBoundValue?.GetType().Name}");
     }
 }

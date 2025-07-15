@@ -29,16 +29,16 @@ public static partial class FeelExpressionEvaluator
             x => EvalList(x.Items, context),
 
         FeelRange
-            x => EvalRange(x.LowerBound, x.UpperBound, x.InclusiveLower, x.InclusiveUpper, context),
+            x => EvalRange(x.LowerBoundExpr, x.UpperBoundExpr, x.InclusiveLower, x.InclusiveUpper, context),
 
         FeelSome
-            x => EvalSome(x.Variable, x.Collection, x.Predicate, context),
+            x => EvalSome(x.Variable, x.CollectionExpr, x.Predicate, context),
 
         FeelIn
             x => EvalIn(x.ValueExpr, x.CollectionExpr, context),
 
         FeelFor
-            x => EvalFor(x.Variable, x.Collection, x.Body, context),
+            x => EvalFor(x.Variable, x.CollectionExpr, x.Body, context),
 
         FeelContext
             x => EvalContext(x.Properties, context),

@@ -22,6 +22,6 @@ public static partial class FeelExpressionEvaluator
                 : null;
         }
 
-        throw new FeelParserException(FeelParserError.INVALID_PROPERTY_ACCESS);
+        throw new FeelParserException(FeelParserError.CONTEXT_INVALID_TARGET_VALUE);
     }
 }

@@ -16,6 +16,6 @@ public static partial class FeelExpressionEvaluator
             "boolean" => Eval(left, context) is bool,
             "context" => Eval(left, context) is Dictionary<string, FeelExpression>,
             "function" => Eval(left, context) is Dictionary<string, FeelExpression>,
-            _ => throw new FeelParserException(FeelParserError.INVALID_OPERAND)
+            _ => throw new FeelParserException(FeelParserError.INSTANCEOF_INVALID_TYPE_NAME)
         };
 }

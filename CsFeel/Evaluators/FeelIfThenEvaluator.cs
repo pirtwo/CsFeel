@@ -8,5 +8,5 @@ public static partial class FeelExpressionEvaluator
             ? condition
                 ? Eval(thenExpr, context)
                 : Eval(elseExpr, context)
-            : throw new FeelParserException(FeelParserError.INVALID_TYPE);
+            : throw new FeelParserException(FeelParserError.IFTHEN_INVALID_CONDITION_VALUE);
 }
