@@ -148,4 +148,49 @@ public class Function
         // assert
         Assert.Equal(expected, (decimal)result!);
     }
+
+    [Theory]
+    [InlineData("odd(5)", true)]
+    [InlineData("odd(4)", false)]
+    public void FnOddTest(string input, bool expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.Equal(expected, (bool)result!);
+    }
+
+    [Theory]
+    [InlineData("even(5)", false)]
+    [InlineData("even(4)", true)]
+    public void FnEvenTest(string input, bool expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.Equal(expected, (bool)result!);
+    }
+
+    [Theory]
+    [InlineData("sqrt(16)", 4)]
+    [InlineData("sqrt(25)", 5)]
+    public void FnSqrtTest(string input, decimal expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.Equal(expected, (decimal)result!);
+    }
 }
