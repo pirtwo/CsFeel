@@ -10,7 +10,7 @@ Because I couldn't find any parser written in Csharp for it and I needed one
 
 - [x] Values
 
-- [x] Expressions
+- [ ] Expressions (in progress)
 
 - [ ] Functions (in progress)
 
