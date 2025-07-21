@@ -137,6 +137,8 @@ public class Function
     [InlineData("modulo(-12,-5)", -2)]
     [InlineData("modulo(10.1,4.5)", 1.1)]
     [InlineData("modulo( -10.1, 4.5 )", 3.4)]
+    [InlineData("modulo( 10.1, -4.5 )", -3.4)]
+    [InlineData("modulo( -10.1, -4.5 )", -1.1)]
     public void FnModuloTest(string input, decimal expected)
     {
         // arrange

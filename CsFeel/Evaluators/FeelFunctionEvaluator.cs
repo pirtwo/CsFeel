@@ -224,7 +224,9 @@ public static partial class FeelExpressionEvaluator
             throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
         }
 
-        return Eval(args[0], context) is decimal divdn && Eval(args[1], context) is decimal divsr ? divdn % divsr : null;
+        return Eval(args[0], context) is decimal divdn && Eval(args[1], context) is decimal divsr
+            ? divdn - divsr * Math.Floor(divdn / divsr)
+            : null;
     }
 
     private static bool? FnOdd(
