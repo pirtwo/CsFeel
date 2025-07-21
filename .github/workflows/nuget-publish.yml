@@ -1,0 +1,38 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🧰 Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: 📦 Restore dependencies
+        run: dotnet restore ./CsFeel/CsFeel.csproj
+
+      - name: 🧪 Run tests
+        run: dotnet test ./CsFeel.Test/CsFeel.Test.csproj --configuration Release
+
+      - name: 🛠️ Build CsFeel
+        run: dotnet build ./CsFeel/CsFeel.csproj --configuration Release
+
+      - name: 📦 Pack NuGet package with MinVer versioning
+        run: dotnet pack ./CsFeel/CsFeel.csproj --configuration Release --output ./nuget /p:MinVerBuildMetadata=ci
+
+      - name: 🚀 Publish to NuGet.org
+        run: dotnet nuget push ./nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
