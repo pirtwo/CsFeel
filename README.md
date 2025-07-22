@@ -20,9 +20,8 @@ dotnet add package CsFeel --version 1.0.0
 
 # References
 
-[DMN FEEL Handbook](https://kiegroup.github.io/dmn-feel-handbook/#dmn-feel-handbook)
-
-[Learn DMN in 15 minutes](https://learn-dmn-in-15-minutes.com/)
+- [DMN FEEL Handbook](https://kiegroup.github.io/dmn-feel-handbook/#dmn-feel-handbook)
+- [Learn DMN in 15 minutes](https://learn-dmn-in-15-minutes.com/)
 
 # License
 
