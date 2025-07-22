@@ -21,6 +21,7 @@ public static partial class FeelExpressionEvaluator
             var (l, r) when l is string lv && r is string rv => EvalBinaryOperator(lv, rv, op),
             var (l, r) when l is decimal lv && r is decimal rv => EvalBinaryOperator(lv, rv, op),
             var (l, r) when l is DateTime lv && r is DateTime rv => EvalBinaryOperator(lv, rv, op),
+            var (l, r) when l is List<object?> lv && r is List<object?> rv => EvalBinaryOperator(lv, rv, op),
             _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
         };
     }
@@ -148,6 +149,24 @@ public static partial class FeelExpressionEvaluator
         ">=" => l >= r,
         "<=" => l <= r,
         "!=" => l != r,
+        "**" => null,
+        "or" => null,
+        "and" => null,
+        _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
+    };
+
+    private static object? EvalBinaryOperator(List<object?> l, List<object?> r, string op) => op switch
+    {
+        "+" => null,
+        "-" => null,
+        "*" => null,
+        "/" => null,
+        ">" => null,
+        "<" => null,
+        "=" => l.SequenceEqual(r),
+        ">=" => null,
+        "<=" => null,
+        "!=" => !l.SequenceEqual(r),
         "**" => null,
         "or" => null,
         "and" => null,

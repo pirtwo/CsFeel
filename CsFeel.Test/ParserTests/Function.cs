@@ -82,6 +82,20 @@ public class Function
         Assert.Equal(expected, (bool)result!);
     }
 
+    [Theory]
+    [InlineData("replace( \"banana\", \"a\", \"o\" )", "bonono")]
+    public void FnReplaceTest(string input, string expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.Equal(expected, (string)result!);
+    }
+
 
     //_____ number fn
 
@@ -194,5 +208,45 @@ public class Function
 
         // assert
         Assert.Equal(expected, (decimal)result!);
+    }
+
+    [Theory]
+    [InlineData("list contains([1,2,3], 1)", true)]
+    [InlineData("list contains([1,2,3], 4)", false)]
+    [InlineData("list contains([1,2,3,null], null)", true)]
+    public void FnListContains(string input, bool expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.Equal(expected, (bool)result!);
+    }
+
+    [Theory]
+    [InlineData("list replace([1,2,3,4], 0, 0) = null", true)]
+    [InlineData("list replace([1,2,3,4], 1, 0) = [0,2,3,4]", true)]
+    [InlineData("list replace([1,2,3,4], 2, 0) = [1,0,3,4]", true)]
+    [InlineData("list replace([1,2,3,4], 3, 0) = [1,2,0,4]", true)]
+    [InlineData("list replace([1,2,3,4], 4, 0) = [1,2,3,0]", true)]
+    [InlineData("list replace([1,2,3,4], 5, 0) = [1,2,3,4,0]", true)]
+    [InlineData("list replace([1,2,3,4], -1, 0) = [1,2,3,0]", true)]
+    [InlineData("list replace([1,2,3,4], -2, 0) = [1,2,0,4]", true)]
+    [InlineData("list replace([1,2,3,4], -3, 0) = [1,0,3,4]", true)]
+    [InlineData("list replace([1,2,3,4], -4, 0) = [0,2,3,4]", true)]
+    [InlineData("list replace([1,2,3,4], -5, 0) = [0,1,2,3,4]", true)]
+    public void FnListReplace(string input, bool expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.Equal(expected, (bool)result!);
     }
 }

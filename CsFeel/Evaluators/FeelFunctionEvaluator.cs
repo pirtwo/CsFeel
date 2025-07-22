@@ -21,6 +21,8 @@ public static partial class FeelExpressionEvaluator
                 => FnLowerCase(args, context),
             "contains"
                 => FnContains(args, context),
+            "replace"
+                => FnReplace(args, context),
 
             //___________ number fn
             "number"
@@ -40,11 +42,19 @@ public static partial class FeelExpressionEvaluator
             "sqrt"
                 => FnSqrt(args, context),
 
-            //___________ other fn
-            "not" =>
-                Eval(args[0], context) is bool v
-                ? !v
-                : null,
+
+            //___________ bool fn
+            "not" => FnNot(args, context),
+
+
+            //___________ list fn
+            "list contains"
+                => FnListContains(args, context),
+            "list replace"
+                => FnListReplace(args, context),
+
+
+            //___________ date fn
             "date" =>
                 DateTime.TryParse(Eval(args[0], context) as string, out var date)
                 ? date.Date
@@ -169,6 +179,20 @@ public static partial class FeelExpressionEvaluator
             ? str.Contains(val) : null;
     }
 
+    private static string? FnReplace(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 3)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is string input
+            && Eval(args[1], context) is string pattern
+            && Eval(args[2], context) is string replace
+            ? input.Replace(pattern, replace, StringComparison.InvariantCulture)
+            : null;
+    }
 
     //___________ number fn
     private static decimal? FnNumber(
@@ -260,5 +284,68 @@ public static partial class FeelExpressionEvaluator
         }
 
         return Eval(args[0], context) is decimal n ? (decimal)Math.Sqrt((double)n) : null;
+    }
+
+
+    //___________ bool fn
+    private static bool? FnNot(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+            => Eval(args[0], context) is bool v ? !v : null;
+
+
+    //___________ list fn
+    private static bool FnListContains(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 2)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is List<object?> list && list.Contains(Eval(args[1], context));
+    }
+
+    private static List<object?>? FnListReplace(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 3)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        if (Eval(args[0], context) is List<object?> list && Eval(args[1], context) is decimal index)
+        {
+            var i = (int)Math.Floor(index);
+
+            if (i == 0)
+            {
+                return null;
+            }
+
+            if (i > 0 && i <= list.Count)
+            {
+                list[i - 1] = Eval(args[2], context);
+                return list;
+            }
+            if (i > 0 && i > list.Count)
+            {
+                return [.. list, Eval(args[2], context)];
+            }
+            if (i < 0 && Math.Abs(i) <= list.Count)
+            {
+                list[^Math.Abs(i)] = Eval(args[2], context);
+                return list;
+            }
+            if (i < 0 && Math.Abs(i) > list.Count)
+            {
+                return [.. list.Prepend(Eval(args[2], context))];
+            }
+
+            return null;
+        }
+        else
+        {
+            return null;
+        }
     }
 }
