@@ -6,12 +6,16 @@ A DMN FEEL language parser and interpreter written in Csharp
 
 Because I couldn't find any parser written in Csharp for it and I needed one
 
+# Install
+
+```bash
+dotnet add package CsFeel --version 1.0.0
+```
+
 # Features
 
 - [x] Values
-
 - [ ] Expressions (partial - in progress)
-
 - [ ] Functions (partial - in progress)
 
 # References
