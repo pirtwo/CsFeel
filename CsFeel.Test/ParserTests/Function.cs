@@ -227,17 +227,15 @@ public class Function
     }
 
     [Theory]
+    [InlineData("list replace([1,2,3,4], 5, 0) = null", true)]
     [InlineData("list replace([1,2,3,4], 0, 0) = null", true)]
+    [InlineData("list replace([1,2,3,4], -9, 0) = null", true)]
+    [InlineData("list replace([1,2,3,4], -1, 0) = null", true)]
+    [InlineData("list replace([1,2,3,4], 1.1, 0) = null", true)]
     [InlineData("list replace([1,2,3,4], 1, 0) = [0,2,3,4]", true)]
     [InlineData("list replace([1,2,3,4], 2, 0) = [1,0,3,4]", true)]
     [InlineData("list replace([1,2,3,4], 3, 0) = [1,2,0,4]", true)]
     [InlineData("list replace([1,2,3,4], 4, 0) = [1,2,3,0]", true)]
-    [InlineData("list replace([1,2,3,4], 5, 0) = [1,2,3,4,0]", true)]
-    [InlineData("list replace([1,2,3,4], -1, 0) = [1,2,3,0]", true)]
-    [InlineData("list replace([1,2,3,4], -2, 0) = [1,2,0,4]", true)]
-    [InlineData("list replace([1,2,3,4], -3, 0) = [1,0,3,4]", true)]
-    [InlineData("list replace([1,2,3,4], -4, 0) = [0,2,3,4]", true)]
-    [InlineData("list replace([1,2,3,4], -5, 0) = [0,1,2,3,4]", true)]
     public void FnListReplace(string input, bool expected)
     {
         // arrange

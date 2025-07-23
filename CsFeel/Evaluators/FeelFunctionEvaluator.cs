@@ -317,31 +317,14 @@ public static partial class FeelExpressionEvaluator
         {
             var i = (int)Math.Floor(index);
 
-            if (i == 0)
+            if (index.Scale != 0 || i <= 0 || i > list.Count)
             {
                 return null;
             }
 
-            if (i > 0 && i <= list.Count)
-            {
-                list[i - 1] = Eval(args[2], context);
-                return list;
-            }
-            if (i > 0 && i > list.Count)
-            {
-                return [.. list, Eval(args[2], context)];
-            }
-            if (i < 0 && Math.Abs(i) <= list.Count)
-            {
-                list[^Math.Abs(i)] = Eval(args[2], context);
-                return list;
-            }
-            if (i < 0 && Math.Abs(i) > list.Count)
-            {
-                return [.. list.Prepend(Eval(args[2], context))];
-            }
+            list[i - 1] = Eval(args[2], context);
 
-            return null;
+            return list;
         }
         else
         {
