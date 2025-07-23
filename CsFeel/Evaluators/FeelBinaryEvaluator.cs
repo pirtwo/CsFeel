@@ -13,6 +13,7 @@ public static partial class FeelExpressionEvaluator
             var (l, r) when l is null && r is null => EvalBinaryOperatorNull(op),
             var (l, r) when l is null && r is bool rv => EvalBinaryOperatorNull(rv, op),
             var (l, r) when l is null && r is string rv => EvalBinaryOperatorNull(rv, op),
+            var (l, r) when l is null && r is decimal rv => EvalBinaryOperatorNull(rv, op),
             var (l, r) when l is bool lv && r is null => EvalBinaryOperatorNull(lv, op),
             var (l, r) when l is bool lv && r is bool rv => EvalBinaryOperator(lv, rv, op),
             var (l, r) when l is bool lv && r is string rv => EvalBinaryOperator(lv, rv, op),
@@ -125,6 +126,19 @@ public static partial class FeelExpressionEvaluator
     };
 
     private static object? EvalBinaryOperatorNull(string _, string op) => op switch
+    {
+        "+" => null,
+        "-" => null,
+        "*" => null,
+        "/" => null,
+        "=" => false,
+        "!=" => true,
+        "or" => null,
+        "and" => null,
+        _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
+    };
+
+    private static object? EvalBinaryOperatorNull(decimal operand, string op) => op switch
     {
         "+" => null,
         "-" => null,
