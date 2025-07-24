@@ -97,13 +97,21 @@ public static class FeelParser
     static readonly Parser<FeelExpression> _propertyAccess =
         from target in _atom
         from accesses in (
+            // Existing property access
             from _ in Parse.Char('.').Token()
             from prop in Parse.Not(Parse.Char('.')).Then(_ =>
-                Parse.Letter.Then(firstChar => Parse.LetterOrDigit.Many().Text().Select(rest => firstChar + rest)).Token()
-            )
-            select (target, prop)
-        ).Many()
-        select accesses.Aggregate(target, (current, access) => new FeelContextPropertyAccess(current, access.prop));
+                Parse.Letter.Then(firstChar => Parse.LetterOrDigit.Many().Text().Select(rest => firstChar + rest)).Token())
+            select (Func<FeelExpression, FeelExpression>)(expr =>
+                    new FeelContextPropertyAccess(expr, prop))
+            ).Or(
+                // index access
+                from _lb in Parse.Char('[').Token()
+                from index in _add
+                from _rb in Parse.Char(']').Token()
+                select (Func<FeelExpression, FeelExpression>)(expr =>
+                    new FeelListIndexAccess(expr, index))
+            ).Many()
+        select accesses.Aggregate(target, (current, access) => access(current));
 
 
     // _______________ 4. parser pipeline: unary & binary

@@ -45,6 +45,26 @@ public class ListExpression
     }
 
     [Theory]
+    [InlineData("[1,2,3][1]=1")]
+    [InlineData("[1,2,3][2]=2")]
+    [InlineData("[1,2,3][3]=3")]
+    [InlineData("[1,2,[4,5]][3][1]=4")]
+    [InlineData("[1,2,[4,5]][3][2]=5")]
+    [InlineData("[1,2,3][4]=null")]
+    [InlineData("[1,2,3][-1]=null")]
+    public void ListIndexAccessTest(string input)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.True((bool)result!);
+    }
+
+    [Theory]
     [InlineData("list contains([1,2,3], 1) = true")]
     [InlineData("list contains([1,2,3], 4) = false")]
     [InlineData("list contains([1,2,3,null], null) = true")]
