@@ -39,6 +39,8 @@ public static class FeelExpressionPrinter
         FeelSome _ => "SomeExpression",
         FeelBetween _ => "BetweenExpression",
         FeelInstanceOf io => $"InstanceOf({io.TypeName})",
+        FeelList ls => $"List({ls.Items.Count()})",
+        FeelListIndexAccess _ => $"ListIndexAccess",
         _ => expr.GetType().Name
     };
 
@@ -88,6 +90,16 @@ public static class FeelExpressionPrinter
 
             case FeelInstanceOf io:
                 yield return ("Value", io.Left);
+                break;
+
+            case FeelList ls:
+                for (int i = 0; i < ls.Items.Count(); i++)
+                    yield return ($"Element[{i}]", ls.Items.ToList()[i]);
+                break;
+
+            case FeelListIndexAccess lsa:
+                yield return ("List", lsa.ListExpr);
+                yield return ("Index", lsa.IndexExpr);
                 break;
 
             default:
