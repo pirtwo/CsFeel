@@ -45,9 +45,9 @@ public static class FeelParser
 
     static readonly Parser<FeelExpression> _list =
         from _lb in Parse.Char('[').Token()
-        from items in _add.DelimitedBy(Parse.Char(',').Token())
+        from items in _add.DelimitedBy(Parse.Char(',').Token()).Optional()
         from _rb in Parse.Char(']').Token()
-        select new FeelList(items);
+        select new FeelList(items.GetOrElse([]));
 
     static readonly Parser<FeelExpression> _range = (
         from open in Parse.Char('[').Or(Parse.Char('(')).Token()
