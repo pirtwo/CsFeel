@@ -28,7 +28,29 @@ jobs:
         run: dotnet build ./CsFeel/CsFeel.csproj --configuration Release
 
       - name: 📦 Pack NuGet package with MinVer versioning
-        run: dotnet pack ./CsFeel/CsFeel.csproj --configuration Release --output ./nuget /p:MinVerBuildMetadata=ci
+        id: pack
+        run: |
+          dotnet pack ./CsFeel/CsFeel.csproj --configuration Release --output ./nuget /p:MinVerBuildMetadata=ci
+          # Extract version from the first .nupkg file found
+          PACKAGE_VERSION=$(ls ./nuget/*.nupkg | head -1 | grep -oP '\d+\.\d+\.\d+')
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=v${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
 
       - name: 🚀 Publish to NuGet.org
         run: dotnet nuget push ./nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
+      - name: 📝 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.pack.outputs.TAG_NAME }}
+          name: Release ${{ steps.pack.outputs.TAG_NAME }}
+          body: |
+            ### What's Changed
+            - Version ${{ steps.pack.outputs.PACKAGE_VERSION }} release
+            - Source code release
+            - Includes all changes since last release
+          draft: false
+          prerelease: false
+          generate_release_notes: true
