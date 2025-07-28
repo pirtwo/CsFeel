@@ -34,6 +34,8 @@
     <Version>0.0.0</Version>
     <!-- Optional -->
     <MinVerVersion>1.0.0</MinVerVersion>
+    <!-- tag prefix -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
 
 </Project>
