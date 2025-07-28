@@ -2,7 +2,6 @@ namespace CsFeel;
 
 public static class Helper
 {
-    //___________ helper
     public static bool IsEqual(object? a, object? b) => (a, b) switch
     {
         var (x, y) when x is null && y is null => true,
