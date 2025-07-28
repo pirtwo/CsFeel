@@ -29,13 +29,13 @@
     <PackageReference Include="Sprache" Version="2.3.1" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <!-- MinVer Placeholder -->
-    <Version>0.0.0</Version>
-    <!-- Optional -->
+  <PropertyGroup>    
+    <!-- MinVer: Optional -->
     <MinVerVersion>1.0.0</MinVerVersion>
-    <!-- tag prefix -->
+    <!-- MinVer: tag prefix -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
+    <!-- MinVer: allow all tags -->
+    <MinVerAllowLightweightTags>true</MinVerAllowLightweightTags>
   </PropertyGroup>
 
 </Project>

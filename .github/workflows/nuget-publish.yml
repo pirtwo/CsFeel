@@ -19,11 +19,12 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: 📜 List all Git tags
+      - name: 🔍 Check reachable tags
         run: |
           echo "--- ALL TAGS ---"
           git tag --list
-          echo ""
+          echo "--- ALL HEAD ---"
+          git tag --contains HEAD
 
       - name: 🧰 Setup .NET
         uses: actions/setup-dotnet@v4
