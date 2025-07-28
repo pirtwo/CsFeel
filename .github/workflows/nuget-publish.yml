@@ -19,19 +19,11 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: 🧰 Install MinVer CLI
-        run: dotnet tool install --global minver-cli
-
       - name: 📜 List all Git tags
         run: |
           echo "--- ALL TAGS ---"
           git tag --list
           echo ""
-          echo "--- RECENT COMMITS ---"
-          git log --oneline -n 10 --decorate
-          echo ""
-          echo "--- MINVER BASE VERSION ---"
-          dotnet minver
 
       - name: 🧰 Setup .NET
         uses: actions/setup-dotnet@v4
