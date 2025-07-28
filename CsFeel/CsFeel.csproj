@@ -29,9 +29,7 @@
     <PackageReference Include="Sprache" Version="2.3.1" />
   </ItemGroup>
 
-  <PropertyGroup>    
-    <!-- MinVer: Optional -->
-    <MinVerVersion>1.0.0</MinVerVersion>
+  <PropertyGroup>        
     <!-- MinVer: tag prefix -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <!-- MinVer: allow all tags -->
