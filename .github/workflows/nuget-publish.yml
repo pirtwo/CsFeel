@@ -37,15 +37,21 @@ jobs:
       - name: 🧪 Run tests
         run: dotnet test ./CsFeel.Test/CsFeel.Test.csproj --configuration Release
 
+      - name: 🧼 Clean CsFeel (MinVer cache)
+        run: |
+          dotnet clean ./CsFeel/CsFeel.csproj --configuration Release
+          rm -rf ./CsFeel/obj
+
       - name: 🛠️ Build CsFeel (uncached)
         run: |
-          dotnet clean
-          dotnet build ./CsFeel/CsFeel.csproj --configuration Release /p:MinVerVerbosity=detailed /p:MinVerSkip=false
+          dotnet build ./CsFeel/CsFeel.csproj \
+            --configuration Release \
+            /p:MinVerVerbosity=detailed \
+            /p:MinVerSkip=false
 
       - name: 📦 Pack with MinVer
         id: pack
         run: |
-          dotnet clean
           dotnet pack ./CsFeel/CsFeel.csproj \
             --configuration Release \
             --output ./nuget \
