@@ -82,9 +82,7 @@ jobs:
       - name: 🚫 Skip Release (Dry Run)
         if: ${{ inputs.dry-run }}
         run: |
-          echo "DRY RUN: Would publish version ${{ steps.pack.outputs.PACKAGE_VERSION }}"
-          echo "Package contents:"
-          unzip -l ./nuget/*.nupkg | head -10
+          echo "DRY RUN: Would release version ${{ steps.pack.outputs.PACKAGE_VERSION }}"
 
       - name: 📝 Create GitHub Release
         if: ${{ !inputs.dry-run }}
