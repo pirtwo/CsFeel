@@ -82,6 +82,20 @@ public class Function
         Assert.Equal(expected, (bool)result!);
     }
 
+    [Theory]
+    [InlineData("replace( \"banana\", \"a\", \"o\" )", "bonono")]
+    public void FnReplaceTest(string input, string expected)
+    {
+        // arrange
+        var exp = FeelParser.Expr.Parse(input);
+
+        // act
+        var result = FeelExpressionEvaluator.Eval(exp, []);
+
+        // assert
+        Assert.Equal(expected, (string)result!);
+    }
+
 
     //_____ number fn
 
@@ -195,4 +209,5 @@ public class Function
         // assert
         Assert.Equal(expected, (decimal)result!);
     }
+
 }

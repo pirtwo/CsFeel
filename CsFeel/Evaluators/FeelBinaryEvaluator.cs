@@ -13,6 +13,7 @@ public static partial class FeelExpressionEvaluator
             var (l, r) when l is null && r is null => EvalBinaryOperatorNull(op),
             var (l, r) when l is null && r is bool rv => EvalBinaryOperatorNull(rv, op),
             var (l, r) when l is null && r is string rv => EvalBinaryOperatorNull(rv, op),
+            var (l, r) when l is null && r is decimal rv => EvalBinaryOperatorNull(rv, op),
             var (l, r) when l is bool lv && r is null => EvalBinaryOperatorNull(lv, op),
             var (l, r) when l is bool lv && r is bool rv => EvalBinaryOperator(lv, rv, op),
             var (l, r) when l is bool lv && r is string rv => EvalBinaryOperator(lv, rv, op),
@@ -21,6 +22,7 @@ public static partial class FeelExpressionEvaluator
             var (l, r) when l is string lv && r is string rv => EvalBinaryOperator(lv, rv, op),
             var (l, r) when l is decimal lv && r is decimal rv => EvalBinaryOperator(lv, rv, op),
             var (l, r) when l is DateTime lv && r is DateTime rv => EvalBinaryOperator(lv, rv, op),
+            var (l, r) when l is List<object?> lv && r is List<object?> rv => EvalBinaryOperator(lv, rv, op),
             _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
         };
     }
@@ -136,6 +138,19 @@ public static partial class FeelExpressionEvaluator
         _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
     };
 
+    private static object? EvalBinaryOperatorNull(decimal operand, string op) => op switch
+    {
+        "+" => null,
+        "-" => null,
+        "*" => null,
+        "/" => null,
+        "=" => false,
+        "!=" => true,
+        "or" => null,
+        "and" => null,
+        _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
+    };
+
     private static object? EvalBinaryOperator(DateTime l, DateTime r, string op) => op switch
     {
         "+" => null,
@@ -148,6 +163,24 @@ public static partial class FeelExpressionEvaluator
         ">=" => l >= r,
         "<=" => l <= r,
         "!=" => l != r,
+        "**" => null,
+        "or" => null,
+        "and" => null,
+        _ => throw new FeelParserException(FeelParserError.INVALID_OPERATION, op)
+    };
+
+    private static object? EvalBinaryOperator(List<object?> l, List<object?> r, string op) => op switch
+    {
+        "+" => null,
+        "-" => null,
+        "*" => null,
+        "/" => null,
+        ">" => null,
+        "<" => null,
+        "=" => Helper.IsEqual(l, r),
+        ">=" => null,
+        "<=" => null,
+        "!=" => !Helper.IsEqual(l, r),
         "**" => null,
         "or" => null,
         "and" => null,

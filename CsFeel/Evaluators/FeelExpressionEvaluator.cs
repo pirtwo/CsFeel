@@ -28,6 +28,9 @@ public static partial class FeelExpressionEvaluator
         FeelList
             x => EvalList(x.Items, context),
 
+        FeelListIndexAccess
+            x => EvalListIndexAccess(x.ListExpr, x.IndexExpr, context),
+
         FeelRange
             x => EvalRange(x.LowerBoundExpr, x.UpperBoundExpr, x.InclusiveLower, x.InclusiveUpper, context),
 

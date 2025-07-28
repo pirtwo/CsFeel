@@ -5,10 +5,7 @@ namespace CsFeel;
 
 public static class FeelParser
 {
-    // _______________ 1. parser pipeline: Entry point
-    public static readonly Parser<FeelExpression> Expr = Parse.Ref(() => _fullExpr);
-
-    // _______________ 2. parser pipeline: leaf definitions (AST leaf nodes)
+    // _______________ 7. atoms (leafs)
     static readonly Parser<FeelExpression> _null =
         from _nill in Parse.String("null").Token() select new FeelLiteral(null);
 
@@ -45,9 +42,9 @@ public static class FeelParser
 
     static readonly Parser<FeelExpression> _list =
         from _lb in Parse.Char('[').Token()
-        from items in _add.DelimitedBy(Parse.Char(',').Token())
+        from items in _add.DelimitedBy(Parse.Char(',').Token()).Optional()
         from _rb in Parse.Char(']').Token()
-        select new FeelList(items);
+        select new FeelList(items.GetOrElse([]));
 
     static readonly Parser<FeelExpression> _range = (
         from open in Parse.Char('[').Or(Parse.Char('(')).Token()
@@ -79,7 +76,7 @@ public static class FeelParser
         select expr;
 
 
-    // _______________ 3. parser pipeline: Atomics
+    // _______________ 6. pipeline: Atomics
     static readonly Parser<FeelExpression> _atom =
         _fnCall
         .Or(_parentheses)
@@ -93,20 +90,28 @@ public static class FeelParser
         .Or(_identifier);
 
 
-    // _______________ 3. parser pipeline: property access
+    // _______________ 5. pipeline: property/index access
     static readonly Parser<FeelExpression> _propertyAccess =
         from target in _atom
         from accesses in (
+            // property access
             from _ in Parse.Char('.').Token()
             from prop in Parse.Not(Parse.Char('.')).Then(_ =>
-                Parse.Letter.Then(firstChar => Parse.LetterOrDigit.Many().Text().Select(rest => firstChar + rest)).Token()
-            )
-            select (target, prop)
-        ).Many()
-        select accesses.Aggregate(target, (current, access) => new FeelContextPropertyAccess(current, access.prop));
+                Parse.Letter.Then(firstChar => Parse.LetterOrDigit.Many().Text().Select(rest => firstChar + rest)).Token())
+            select (Func<FeelExpression, FeelExpression>)(expr =>
+                    new FeelContextPropertyAccess(expr, prop))
+            ).Or(
+                // index access
+                from _lb in Parse.Char('[').Token()
+                from index in _add
+                from _rb in Parse.Char(']').Token()
+                select (Func<FeelExpression, FeelExpression>)(expr =>
+                    new FeelListIndexAccess(expr, index))
+            ).Many()
+        select accesses.Aggregate(target, (current, access) => access(current));
 
 
-    // _______________ 4. parser pipeline: unary & binary
+    // _______________ 4. pipeline: unary & binary
     static readonly Parser<FeelExpression> _unary = (
         from ops in Parse.String("not").Token()
             .Or(Parse.Char('-').Select(_ => "-"))
@@ -129,7 +134,8 @@ public static class FeelParser
         _mult,
         (op, left, right) => new FeelBinary(left, op, right));
 
-    // _______________ 5. parser pipeline: comparison and logical
+
+    // _______________ 3. pipeline: comparison and logical
     static readonly Parser<FeelExpression> _ifThenElse =
         from _if in Parse.String("if").Token()
         from condition in _logical
@@ -203,6 +209,10 @@ public static class FeelParser
         (op, left, right) => new FeelBinary(left, op, right));
 
 
-    // _______________ 6. parser pipeline: if then else
+    // _______________ 2. pipeline: if then else
     static readonly Parser<FeelExpression> _fullExpr = _ifThenElse.Or(_logical);
+
+
+    // _______________ 1. pipeline: Entry point
+    public static readonly Parser<FeelExpression> Expr = Parse.Ref(() => _fullExpr);
 }

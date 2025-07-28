@@ -21,6 +21,8 @@ public static partial class FeelExpressionEvaluator
                 => FnLowerCase(args, context),
             "contains"
                 => FnContains(args, context),
+            "replace"
+                => FnReplace(args, context),
 
             //___________ number fn
             "number"
@@ -40,11 +42,40 @@ public static partial class FeelExpressionEvaluator
             "sqrt"
                 => FnSqrt(args, context),
 
-            //___________ other fn
-            "not" =>
-                Eval(args[0], context) is bool v
-                ? !v
-                : null,
+
+            //___________ bool fn
+            "not" => FnNot(args, context),
+
+
+            //___________ list fn
+            "list contains"
+                => FnListContains(args, context),
+            "list replace"
+                => FnListReplace(args, context),
+            "count"
+                => FnCount(args, context),
+            "min"
+                => FnMin(args, context),
+            "max"
+                => FnMax(args, context),
+            "sum"
+                => FnSum(args, context),
+            "mean"
+                => FnMean(args, context),
+            "median"
+                => FnMedian(args, context),
+            "all"
+                => FnAll(args, context),
+            "any"
+                => FnAny(args, context),
+            "append"
+                => FnAppend(args, context),
+            "reverse"
+                => FnReverse(args, context),
+            "index of"
+                => FnIndexOf(args, context),
+
+            //___________ date fn
             "date" =>
                 DateTime.TryParse(Eval(args[0], context) as string, out var date)
                 ? date.Date
@@ -169,6 +200,20 @@ public static partial class FeelExpressionEvaluator
             ? str.Contains(val) : null;
     }
 
+    private static string? FnReplace(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 3)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is string input
+            && Eval(args[1], context) is string pattern
+            && Eval(args[2], context) is string replace
+            ? input.Replace(pattern, replace, StringComparison.InvariantCulture)
+            : null;
+    }
 
     //___________ number fn
     private static decimal? FnNumber(
@@ -261,4 +306,226 @@ public static partial class FeelExpressionEvaluator
 
         return Eval(args[0], context) is decimal n ? (decimal)Math.Sqrt((double)n) : null;
     }
+
+
+    //___________ bool fn
+    private static bool? FnNot(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+            => Eval(args[0], context) is bool v ? !v : null;
+
+
+    //___________ list fn
+    private static bool FnListContains(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 2)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is List<object?> list && list.Contains(Eval(args[1], context));
+    }
+
+    private static List<object?>? FnListReplace(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 3)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        if (Eval(args[0], context) is List<object?> list && Eval(args[1], context) is decimal index)
+        {
+            var i = (int)Math.Floor(index);
+
+            if (index.Scale != 0 || i <= 0 || i > list.Count)
+            {
+                return null;
+            }
+
+            list[i - 1] = Eval(args[2], context);
+
+            return list;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private static decimal? FnCount(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is List<object?> list
+            ? list.Count
+            : null;
+    }
+
+    private static List<object?>? FnIndexOf(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 2)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        var item = Eval(args[1], context);
+
+        return Eval(args[0], context) is List<object?> list
+            ? list.Aggregate(new
+            {
+                Index = 1,
+                List = new List<object?>()
+            }, (acc, crr) => new
+            {
+                Index = acc.Index + 1,
+                List = Helper.IsEqual(crr, item) ? [.. acc.List, (decimal)acc.Index] : acc.List
+            },
+            acc => acc.List) : null;
+    }
+
+    private static List<object?>? FnReverse(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        if (Eval(args[0], context) is List<object?> list)
+        {
+            list.Reverse();
+            return list;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private static List<object?>? FnAppend(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count < 2)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        if (Eval(args[0], context) is List<object?> list)
+        {
+            list.AddRange(args[1..].Select(arg => Eval(arg, context)));
+            return list;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private static bool? FnAny(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        var expValue = Eval(args[0], context);
+
+        return expValue is List<object?> list
+            ? list.Any(x => x is bool v && v == true)
+            : expValue is bool boolValue
+                ? boolValue
+                : null;
+    }
+
+    private static bool? FnAll(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        var expValue = Eval(args[0], context);
+
+        return expValue is List<object?> list
+            ? list.All(x => x is bool v && v == true) || list.Count == 0
+            : expValue is bool boolValue
+                ? boolValue == true
+                : null;
+    }
+
+    private static decimal? FnMean(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is List<object?> list && list.All(x => x is decimal) && list.Count > 0
+            ? list.Select(x => (decimal)x!).Sum() / list.Count
+            : null;
+    }
+
+    private static decimal? FnMedian(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is List<object?> list && list.All(x => x is decimal) && list.Count > 0
+            ? list.Count % 2 == 0
+                ? ((decimal)list[list.Count / 2]! + (decimal)list[list.Count / 2 - 1]!) / 2
+                : (decimal)list[list.Count / 2]!
+            : null;
+    }
+
+    private static decimal? FnSum(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is List<object?> list && list.All(x => x is decimal) && list.Count > 0
+            ? list.Select(x => (decimal)x!).Sum()
+            : null;
+    }
+
+    private static decimal? FnMax(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is List<object?> list && list.All(x => x is decimal) && list.Count > 0
+            ? list.Select(x => (decimal)x!).Max()
+            : null;
+    }
+
+    private static decimal? FnMin(
+        List<FeelExpression> args, Dictionary<string, object?> context)
+    {
+        if (args.Count != 1)
+        {
+            throw new FeelParserException(FeelParserError.INVALID_NUMBER_OF_ARGUMENTS);
+        }
+
+        return Eval(args[0], context) is List<object?> list && list.All(x => x is decimal) && list.Count > 0
+            ? list.Select(x => (decimal)x!).Min()
+            : null;
+    }
+
 }
