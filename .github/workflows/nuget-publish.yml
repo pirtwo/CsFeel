@@ -16,11 +16,14 @@ jobs:
 
       - name: 📜 List all Git tags
         run: |
-          echo "All Git tags:"
+          echo "--- ALL TAGS ---"
           git tag --list
           echo ""
-          echo "Most recent tag:"
-          git describe --tags --abbrev=0
+          echo "--- RECENT COMMITS ---"
+          git log --oneline -n 10 --decorate
+          echo ""
+          echo "--- MINVER BASE VERSION ---"
+          dotnet minver
 
       - name: 🧰 Setup .NET
         uses: actions/setup-dotnet@v4
@@ -33,22 +36,35 @@ jobs:
       - name: 🧪 Run tests
         run: dotnet test ./CsFeel.Test/CsFeel.Test.csproj --configuration Release
 
-      - name: 🛠️ Build CsFeel
-        run: dotnet build ./CsFeel/CsFeel.csproj --configuration Release /p:MinVerVerbosity=detailed
+      - name: 🛠️ Build CsFeel (uncached)
+        run: |
+          # Clear any cached version
+          dotnet clean ./CsFeel/CsFeel.csproj
+          # Build with detailed MinVer output
+          dotnet build ./CsFeel/CsFeel.csproj --configuration Release /p:MinVerVerbosity=detailed /p:MinVerSkip=false
 
-      - name: 📦 Pack NuGet package with MinVer versioning
+      - name: 📦 Pack with MinVer
         id: pack
         run: |
-          dotnet pack ./CsFeel/CsFeel.csproj --configuration Release --output ./nuget /p:MinVerBuildMetadata=ci /p:MinVerVerbosity=detailed
-          # Extract version from the first .nupkg file found
-          PACKAGE_VERSION=$(ls ./nuget/*.nupkg | head -1 | grep -oP '\d+\.\d+\.\d+')
+          # Force fresh version calculation
+          dotnet clean ./CsFeel/CsFeel.csproj
+          dotnet pack ./CsFeel/CsFeel.csproj \
+            --configuration Release \
+            --output ./nuget \
+            /p:MinVerVerbosity=detailed \
+            /p:MinVerSkip=false \
+            /p:MinVerBuildMetadata=ci
+
+          # Extract version from package
+          PACKAGE_FILE=$(ls ./nuget/*.nupkg | head -1)
+          PACKAGE_VERSION=$(basename "$PACKAGE_FILE" | grep -oP '\d+\.\d+\.\d+')
+
           echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
           echo "TAG_NAME=v${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
-
-      - name: 🚀 Publish to NuGet.org
-        run: dotnet nuget push ./nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+          echo "Package version: ${PACKAGE_VERSION}"
 
       - name: 📝 Create GitHub Release
+        if: success()
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,10 +72,12 @@ jobs:
           tag_name: ${{ steps.pack.outputs.TAG_NAME }}
           name: Release ${{ steps.pack.outputs.TAG_NAME }}
           body: |
-            ### What's Changed
-            - Version ${{ steps.pack.outputs.PACKAGE_VERSION }} release
-            - Source code release
+            ### Version ${{ steps.pack.outputs.PACKAGE_VERSION }}
+            - MinVer-generated from Git history
             - Includes all changes since last release
           draft: false
           prerelease: false
           generate_release_notes: true
+
+      - name: 🚀 Publish to NuGet.org
+        run: dotnet nuget push ./nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
