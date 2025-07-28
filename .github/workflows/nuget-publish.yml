@@ -38,16 +38,13 @@ jobs:
 
       - name: 🛠️ Build CsFeel (uncached)
         run: |
-          # Clear any cached version
-          dotnet clean ./CsFeel/CsFeel.csproj
-          # Build with detailed MinVer output
+          dotnet clean
           dotnet build ./CsFeel/CsFeel.csproj --configuration Release /p:MinVerVerbosity=detailed /p:MinVerSkip=false
 
       - name: 📦 Pack with MinVer
         id: pack
         run: |
-          # Force fresh version calculation
-          dotnet clean ./CsFeel/CsFeel.csproj
+          dotnet clean
           dotnet pack ./CsFeel/CsFeel.csproj \
             --configuration Release \
             --output ./nuget \
