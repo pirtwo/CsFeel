@@ -2,6 +2,11 @@ name: Publish NuGet Package
 
 on:
   workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Test without publishing"
+        type: boolean
+        default: true
 
 jobs:
   build-and-publish:
@@ -63,8 +68,26 @@ jobs:
           echo "TAG_NAME=v${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
           echo "Package version: ${PACKAGE_VERSION}"
 
+      - name: 🚫 Skip publish (Dry Run)
+        if: ${{ inputs.dry-run }}
+        run: |
+          echo "DRY RUN: Would publish version ${{ steps.pack.outputs.PACKAGE_VERSION }}"
+          echo "Package contents:"
+          unzip -l ./nuget/*.nupkg | head -10
+
+      - name: 🚀 Publish to NuGet.org
+        if: ${{ !inputs.dry-run }}
+        run: dotnet nuget push ./nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
+      - name: 🚫 Skip Release (Dry Run)
+        if: ${{ inputs.dry-run }}
+        run: |
+          echo "DRY RUN: Would publish version ${{ steps.pack.outputs.PACKAGE_VERSION }}"
+          echo "Package contents:"
+          unzip -l ./nuget/*.nupkg | head -10
+
       - name: 📝 Create GitHub Release
-        if: success()
+        if: ${{ !inputs.dry-run }}
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,6 +101,3 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-
-      - name: 🚀 Publish to NuGet.org
-        run: dotnet nuget push ./nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
